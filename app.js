@@ -1,4 +1,4 @@
-const config = require('./config.json');
+const config = require('./config.js');
 const Client = require('./src/Client.js');
 const { Intents } = require('discord.js');
 

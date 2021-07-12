@@ -1,5 +1,5 @@
 const { DataTypes, Model } = require('sequelize');
-const { prefix } = require('../../../config.json');
+const { prefix } = require('../../../config.js');
 
 class GuildConfig extends Model {}
 

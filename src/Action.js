@@ -4,7 +4,7 @@
 class Action {
 
   /**
-   * Create new command
+   * Create new action
    * @param {Client} client
    */
   constructor(client) {
