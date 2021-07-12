@@ -32,6 +32,12 @@ class Database {
     }
   }
 
+  // Configure database
+  async _configure() {
+    await this.sequelize.query('PRAGMA journal_mode = WAL;');
+    await this.sequelize.query('PRAGMA synchronous = 1;');
+  }
+
   // Sync models
   async _sync() {
     // Sync all models
@@ -88,6 +94,7 @@ class Database {
 
   async init(path) {
     await this._connect();
+    await this._configure();
     this._loadModels(path);
     this._associate();
     await this._sync();
