@@ -9,7 +9,7 @@ const art = [
   'https://raw.githubusercontent.com/sabattle/CalypsoBot/develop/data/images/Calypso_WIP_3.png'
 ];
 
-module.exports = class GalleryCommand extends Command {
+module.exports = class Gallery extends Command {
   constructor(client) {
     super(client, {
       name: 'gallery',

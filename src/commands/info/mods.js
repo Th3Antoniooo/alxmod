@@ -2,7 +2,7 @@ const Command = require('../Command.js');
 const ReactionMenu = require('../ReactionMenu.js');
 const { MessageEmbed } = require('discord.js');
 
-module.exports = class ModsCommand extends Command {
+module.exports = class Mods extends Command {
   constructor(client) {
     super(client, {
       name: 'mods',

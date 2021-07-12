@@ -3,7 +3,7 @@ const { MessageEmbed } = require('discord.js');
 const { success, verify } = require('../../utils/emojis.json');
 const { oneLine, stripIndent } = require('common-tags');
 
-module.exports = class SetVerificationRoleCommand extends Command {
+module.exports = class SetVerificationRole extends Command {
   constructor(client) {
     super(client, {
       name: 'setverificationrole',

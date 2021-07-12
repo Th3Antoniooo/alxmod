@@ -3,7 +3,7 @@ const { MessageEmbed } = require('discord.js');
 const fetch = require('node-fetch');
 const { oneLine } = require('common-tags');
 
-module.exports = class ThouArtCommand extends Command {
+module.exports = class ThouArt extends Command {
   constructor(client) {
     super(client, {
       name: 'thouart',

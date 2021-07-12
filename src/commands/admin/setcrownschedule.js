@@ -4,7 +4,7 @@ const parser = require('cron-parser');
 const { success } = require('../../utils/emojis.json');
 const { stripIndent } = require('common-tags');
 
-module.exports = class SetCrownScheduleCommand extends Command {
+module.exports = class SetCrownSchedule extends Command {
   constructor(client) {
     super(client, {
       name: 'setcrownschedule',

@@ -1,7 +1,7 @@
 const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 
-module.exports = class EvalCommand extends Command {
+module.exports = class Eval extends Command {
   constructor(client) {
     super(client, {
       name: 'eval',
@@ -14,21 +14,21 @@ module.exports = class EvalCommand extends Command {
   }
   run(message, args) {
     const input = args.join(' ');
-    if (!input) return this.sendErrorMessage(message, 0, 'Please provide code to eval');
-    if(!input.toLowerCase().includes('token')) {
+    if (!input) return this.sendErrorMessage(message, this.errorTypes.MISSING_ARG, 'Please provide code to eval');
+    if (!input.toLowerCase().includes('token')) {
 
       const embed = new MessageEmbed();
 
       try {
         let output = eval(input);
         if (typeof output !== 'string') output = require('util').inspect(output, { depth: 0 });
-        
+
         embed
           .addField('Input', `\`\`\`js\n${input.length > 1024 ? 'Too large to display.' : input}\`\`\``)
           .addField('Output', `\`\`\`js\n${output.length > 1024 ? 'Too large to display.' : output}\`\`\``)
           .setColor('#66FF00');
 
-      } catch(err) {
+      } catch (err) {
         embed
           .addField('Input', `\`\`\`js\n${input.length > 1024 ? 'Too large to display.' : input}\`\`\``)
           .addField('Output', `\`\`\`js\n${err.length > 1024 ? 'Too large to display.' : err}\`\`\``)

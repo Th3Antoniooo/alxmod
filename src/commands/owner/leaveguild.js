@@ -3,7 +3,7 @@ const { MessageEmbed } = require('discord.js');
 
 const rgx = /^(?:<@!?)?(\d+)>?$/;
 
-module.exports = class LeaveGuildCommand extends Command {
+module.exports = class LeaveGuild extends Command {
   constructor(client) {
     super(client, {
       name: 'leaveguild',
@@ -17,9 +17,13 @@ module.exports = class LeaveGuildCommand extends Command {
   async run(message, args) {
     const guildId = args[0];
     if (!rgx.test(guildId))
-      return this.sendErrorMessage(message, 0, 'Please provide a valid server ID');
+      return this.sendErrorMessage(message, this.errorTypes.INVALID_ARG, 'Please provide a valid server ID');
     const guild = message.client.guilds.cache.get(guildId);
-    if (!guild) return this.sendErrorMessage(message, 0, 'Unable to find server, please check the provided ID');
+    if (!guild) return this.sendErrorMessage(
+      message,
+      this.errorTypes.INVALID_ARG,
+      'Unable to find server, please check the provided ID'
+    );
     await guild.leave();
     const embed = new MessageEmbed()
       .setTitle('Leave Guild')
@@ -28,5 +32,5 @@ module.exports = class LeaveGuildCommand extends Command {
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
     message.channel.send(embed);
-  } 
+  }
 };

@@ -3,7 +3,7 @@ const { MessageEmbed } = require('discord.js');
 const permissions = require('../../utils/permissions.json');
 const { oneLine } = require('common-tags');
 
-module.exports = class PermissionsCommand extends Command {
+module.exports = class Permissions extends Command {
   constructor(client) {
     super(client, {
       name: 'permissions',

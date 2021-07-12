@@ -24,7 +24,7 @@ const flags = {
   VERIFIED_DEVELOPER: `${emojis.verified_developer} \`Early Verified Bot Developer\``
 };
 
-module.exports = class UserInfoCommand extends Command {
+module.exports = class UserInfo extends Command {
   constructor(client) {
     super(client, {
       name: 'userinfo',

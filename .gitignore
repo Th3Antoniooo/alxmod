@@ -1,7 +1,8 @@
 # ignore
 *.sqlite*
 node_modules
-logs/*
+logs
+docs
 data/emojis
 .vscode
 .directory

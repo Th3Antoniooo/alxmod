@@ -1,21 +1,23 @@
 const { MessageEmbed } = require('discord.js');
 const permissions = require('../utils/permissions.json');
-const { fail } = require('../utils/emojis.json');
+const { fail, timer } = require('../utils/emojis.json');
 
 /**
- * Calypso's custom Command class
+ * Calypso's Command class
  */
 class Command {
 
   /**
    * Create new command
-   * @param {Client} client 
-   * @param {Object} options 
+   * @param {Client} client
+   * @param {Object} options
    */
   constructor(client, options) {
 
+    if (this.constructor == Command) throw new Error('The Command abstract class cannot be instantiated');
+
     // Validate all options passed
-    this.constructor.validateOptions(client, options);
+    this.constructor._validateOptions(client, options);
 
     /**
      * The client
@@ -54,6 +56,12 @@ class Command {
     this.type = options.type || client.types.MISC;
 
     /**
+     * The cooldown duration, in seconds
+     * @type {int}
+     */
+    this.cooldown = options.cooldown || 0;
+
+    /**
      * The client permissions needed
      * @type {Array<string>}
      */
@@ -70,7 +78,7 @@ class Command {
      * @type {Array<string>}
      */
     this.examples = options.examples || null;
-    
+
     /**
      * If command can only be used by owner
      * @type {boolean}
@@ -84,16 +92,29 @@ class Command {
     this.disabled = options.disabled || false;
 
     /**
-     * Array of error types
-     * @type {Array<string>}
+     * All active cooldowns
+     * @type {boolean}
+     * @private
      */
-    this.errorTypes = ['Invalid Argument', 'Command Failure'];
+    this._cooldowns = new Map();
+
+    /**
+     * All possible command error types
+     * @type {Object}
+     */
+    this.errorTypes = {
+      MISSING_ARG: 'Missing Argument',
+      INVALID_ARG: 'Invalid Argument',
+      COMMAND_FAIL: 'Command Failure',
+      MISSING_BOT_PERM: 'Missing Bot Permissions',
+      MISSING_USER_PERM: 'Missing User Permissions'
+    };
   }
 
   /**
    * Runs the command
-   * @param {Message} message 
-   * @param {string[]} args 
+   * @param {Message} message
+   * @param {string[]} args
    */
   // eslint-disable-next-line no-unused-vars
   run(message, args) {
@@ -102,8 +123,8 @@ class Command {
 
   /**
    * Gets member from mention
-   * @param {Message} message 
-   * @param {string} mention 
+   * @param {Message} message
+   * @param {string} mention
    */
   getMemberFromMention(message, mention) {
     if (!mention) return;
@@ -115,8 +136,8 @@ class Command {
 
   /**
    * Gets role from mention
-   * @param {Message} message 
-   * @param {string} mention 
+   * @param {Message} message
+   * @param {string} mention
    */
   getRoleFromMention(message, mention) {
     if (!mention) return;
@@ -128,8 +149,8 @@ class Command {
 
   /**
    * Gets text channel from mention
-   * @param {Message} message 
-   * @param {string} mention 
+   * @param {Message} message
+   * @param {string} mention
    */
   getChannelFromMention(message, mention) {
     if (!mention) return;
@@ -141,11 +162,10 @@ class Command {
 
   /**
    * Helper method to check permissions
-   * @param {Message} message 
-   * @param {boolean} ownerOverride 
+   * @param {Message} message
+   * @param {boolean} ownerOverride
    */
   checkPermissions(message, ownerOverride = true) {
-    if (!message.channel.permissionsFor(message.guild.me).has(['SEND_MESSAGES', 'EMBED_LINKS'])) return false;
     const clientPermission = this.checkClientPermissions(message);
     const userPermission = this.checkUserPermissions(message, ownerOverride);
     if (clientPermission && userPermission) return true;
@@ -153,30 +173,43 @@ class Command {
   }
 
   /**
+   * Checks the client permissions
+   * @param {Message} message
+   * @param {boolean} ownerOverride
+   */
+  checkClientPermissions(message) {
+    const { guild, channel } = message;
+    let missingPermissions =
+      channel.permissionsFor(guild.me).missing(this.clientPermissions).map(p => permissions[p]);
+    if (missingPermissions.length !== 0) {
+      missingPermissions = missingPermissions.map(p => `- ${p}`).join('\n').slice(2);
+      this.sendErrorMessage(message, this.errorTypes.MISSING_BOT_PERM, missingPermissions);
+      return false;
+
+    } else return true;
+  }
+
+  /**
    * Checks the user permissions
    * Code modified from: https://github.com/discordjs/Commando/blob/master/src/commands/base.js
-   * @param {Message} message 
-   * @param {boolean} ownerOverride 
+   * @param {Message} message
+   * @param {boolean} ownerOverride
    */
   checkUserPermissions(message, ownerOverride = true) {
+    const { channel, member, author } = message;
     if (!this.ownerOnly && !this.userPermissions) return true;
-    if (ownerOverride && this.client.isOwner(message.author)) return true;
-    if (this.ownerOnly && !this.client.isOwner(message.author)) {
+    if (ownerOverride && this.client.isOwner(author)) return true;
+    if (this.ownerOnly && !this.client.isOwner(author)) {
       return false;
     }
-    
-    if (message.member.hasPermission('ADMINISTRATOR')) return true;
+
+    if (member.hasPermission('ADMINISTRATOR')) return true;
     if (this.userPermissions) {
-      const missingPermissions =
-        message.channel.permissionsFor(message.author).missing(this.userPermissions).map(p => permissions[p]);
+      let missingPermissions =
+        channel.permissionsFor(author).missing(this.userPermissions).map(p => permissions[p]);
       if (missingPermissions.length !== 0) {
-        const embed = new MessageEmbed()
-          .setAuthor(`${message.author.tag}`, message.author.displayAvatarURL({ dynamic: true }))
-          .setTitle(`${fail} Missing User Permissions: \`${this.name}\``)
-          .setDescription(`\`\`\`diff\n${missingPermissions.map(p => `- ${p}`).join('\n')}\`\`\``)
-          .setTimestamp()
-          .setColor(message.guild.me.displayHexColor);
-        message.channel.send(embed);
+        missingPermissions = missingPermissions.map(p => `- ${p}`).join('\n').slice(2);
+        this.sendErrorMessage(message, this.errorTypes.MISSING_USER_PERM, missingPermissions);
         return false;
       }
     }
@@ -184,84 +217,76 @@ class Command {
   }
 
   /**
-   * Checks the client permissions
-   * @param {Message} message 
-   * @param {boolean} ownerOverride 
+   * Gets or creates the cooldown for a current user
+   * @param {string} userId
    */
-  checkClientPermissions(message) {
-    const missingPermissions =
-      message.channel.permissionsFor(message.guild.me).missing(this.clientPermissions).map(p => permissions[p]);
-    if (missingPermissions.length !== 0) {
-      const embed = new MessageEmbed()
-        .setAuthor(`${this.client.user.tag}`, message.client.user.displayAvatarURL({ dynamic: true }))
-        .setTitle(`${fail} Missing Bot Permissions: \`${this.name}\``)
-        .setDescription(`\`\`\`diff\n${missingPermissions.map(p => `- ${p}`).join('\n')}\`\`\``)
-        .setTimestamp()
-        .setColor(message.guild.me.displayHexColor);
-      message.channel.send(embed);
-      return false;
+  getOrCreateCooldown(userId) {
+    if (this.cooldown <= 0 || this.client.isOwner(userId)) return null;
 
-    } else return true;
+    let cooldown = this._cooldowns.get(userId);
+    if (!cooldown) {
+      cooldown = {
+        start: Date.now(),
+        timeout: this.client.setTimeout(() => {
+          this._cooldowns.delete(userId);
+        }, this.cooldown * 1000)
+      };
+      this._cooldowns.set(userId, cooldown);
+      return null;
+    }
+
+    return cooldown;
   }
-  
+
+  /**
+   * Creates and sends active cooldown embed
+   * @param {Message} message
+   */
+  sendCooldownMessage(message, cooldown) {
+    const { guild, channel, author } = message;
+    const seconds = this.cooldown - Math.floor((Date.now() - cooldown.start) / 1000);
+    const embed = new MessageEmbed()
+      .setAuthor(`${author.tag}`, author.displayAvatarURL({ dynamic: true }))
+      .setTitle(`${timer}  Active Cooldown: \`${this.name}\``)
+      .setDescription(`This command is on cooldown for another \`${seconds}\` second${seconds != 1 ? 's' : ''}.`)
+      .setTimestamp()
+      .setColor(guild.me.displayHexColor);
+    channel.send(embed);
+  }
+
   /**
    * Creates and sends command failure embed
    * @param {Message} message
-   * @param {int} errorType
-   * @param {string} reason 
-   * @param {string} errorMessage 
+   * @param {string} errorType
+   * @param {string} errorMessage
+   * @param {string} stackTrace
    */
-  sendErrorMessage(message, errorType, reason, errorMessage = null) {
-    errorType = this.errorTypes[errorType];
-    const prefix = message.client.db.settings.selectPrefix.pluck().get(message.guild.id);
+  sendErrorMessage(message, errorType = this.errorTypes.INVALID_ARG, errorMessage = '', stackTrace = null) {
+    const { guild, channel, client, author } = message;
+    const { INVALID_ARG, MISSING_ARG, MISSING_BOT_PERM } = this.errorTypes;
+    const prefix = this.client.configs.get(guild.id).prefix;
+    const user = (errorType === MISSING_BOT_PERM) ? client.user : author;
     const embed = new MessageEmbed()
-      .setAuthor(`${message.author.tag}`, message.author.displayAvatarURL({ dynamic: true }))
-      .setTitle(`${fail} Error: \`${this.name}\``)
-      .setDescription(`\`\`\`diff\n- ${errorType}\n+ ${reason}\`\`\``)
-      .addField('Usage', `\`${prefix}${this.usage}\``)
+      .setAuthor(`${user.tag}`, user.displayAvatarURL({ dynamic: true }))
+      .setTitle(`${fail}  Error: \`${this.name}\``)
+      .setDescription(`\`\`\`diff\n+ ${errorType}\n- ${errorMessage}\`\`\``)
       .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
-    if (this.examples) embed.addField('Examples', this.examples.map(e => `\`${prefix}${e}\``).join('\n'));
-    if (errorMessage) embed.addField('Error Message', `\`\`\`${errorMessage}\`\`\``);
-    message.channel.send(embed);
-  }
-
-  /**
-   * Creates and sends mod log embed
-   * @param {Message} message
-   * @param {string} reason 
-   * @param {Object} fields
-   */
-  async sendModLogMessage(message, reason, fields = {}) {
-    const modLogId = message.client.db.settings.selectModLogId.pluck().get(message.guild.id);
-    const modLog = message.guild.channels.cache.get(modLogId);
-    if (
-      modLog && 
-      modLog.viewable &&
-      modLog.permissionsFor(message.guild.me).has(['SEND_MESSAGES', 'EMBED_LINKS'])
-    ) {
-      const caseNumber = await message.client.utils.getCaseNumber(message.client, message.guild, modLog);
-      const embed = new MessageEmbed()
-        .setTitle(`Action: \`${message.client.utils.capitalize(this.name)}\``)
-        .addField('Moderator', message.member, true)
-        .setFooter(`Case #${caseNumber}`)
-        .setTimestamp()
-        .setColor(message.guild.me.displayHexColor);
-      for (const field in fields) {
-        embed.addField(field, fields[field], true);
-      }
-      embed.addField('Reason', reason);
-      modLog.send(embed).catch(err => message.client.logger.error(err.stack));
+      .setColor(guild.me.displayHexColor);
+    if (errorType === INVALID_ARG || errorType === MISSING_ARG) {
+      embed.addField('Usage', `\`${prefix}${this.usage}\``);
+      if (this.examples) embed.addField('Examples', this.examples.map(e => `\`${prefix}${e}\``).join('\n'));
     }
+    if (stackTrace) embed.addField('Error Message', `\`\`\`${stackTrace}\`\`\``);
+    channel.send(embed);
   }
 
   /**
    * Validates all options provided
    * Code modified from: https://github.com/discordjs/Commando/blob/master/src/commands/base.js
-   * @param {Client} client 
-   * @param {Object} options 
+   * @param {Client} client
+   * @param {Object} options
    */
-  static validateOptions(client, options) {
+  static _validateOptions(client, options) {
 
     if (!client) throw new Error('No client was found');
     if (typeof options !== 'object') throw new TypeError('Command options is not an Object');
@@ -269,6 +294,7 @@ class Command {
     // Name
     if (typeof options.name !== 'string') throw new TypeError('Command name is not a string');
     if (options.name !== options.name.toLowerCase()) throw new Error('Command name is not lowercase');
+    if (!options.name || /^\s*$/.test(options.name)) throw new Error('Command name is empty');
 
     // Aliases
     if (options.aliases) {
@@ -287,19 +313,23 @@ class Command {
     if (options.usage && typeof options.usage !== 'string') throw new TypeError('Command usage is not a string');
 
     // Description
-    if (options.description && typeof options.description !== 'string') 
+    if (options.description && typeof options.description !== 'string')
       throw new TypeError('Command description is not a string');
-    
+
     // Type
     if (options.type && typeof options.type !== 'string') throw new TypeError('Command type is not a string');
     if (options.type && !Object.values(client.types).includes(options.type))
       throw new Error('Command type is not valid');
-    
+
+    // Cooldown
+    if (options.cooldown && typeof options.cooldown !== 'number')
+      throw new TypeError('Command cooldown is not a number');
+
     // Client permissions
     if (options.clientPermissions) {
       if (!Array.isArray(options.clientPermissions))
         throw new TypeError('Command clientPermissions is not an Array of permission key strings');
-      
+
       for (const perm of options.clientPermissions) {
         if (!permissions[perm]) throw new RangeError(`Invalid command clientPermission: ${perm}`);
       }
@@ -320,11 +350,11 @@ class Command {
       throw new TypeError('Command examples is not an Array of permission key strings');
 
     // Owner only
-    if (options.ownerOnly && typeof options.ownerOnly !== 'boolean') 
+    if (options.ownerOnly && typeof options.ownerOnly !== 'boolean')
       throw new TypeError('Command ownerOnly is not a boolean');
 
     // Disabled
-    if (options.disabled && typeof options.disabled !== 'boolean') 
+    if (options.disabled && typeof options.disabled !== 'boolean')
       throw new TypeError('Command disabled is not a boolean');
   }
 }

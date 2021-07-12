@@ -4,7 +4,7 @@ const colors = require('../../utils/colors.json');
 const len = Object.keys(colors).length;
 const { oneLine } = require('common-tags');
 
-module.exports = class CreateDefaultColorsCommand extends Command {
+module.exports = class CreateDefaultColors extends Command {
   constructor(client) {
     super(client, {
       name: 'createdefaultcolors',

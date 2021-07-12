@@ -1,7 +1,7 @@
 const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 
-module.exports = class UnmuteCommand extends Command {
+module.exports = class Unmute extends Command {
   constructor(client) {
     super(client, {
       name: 'unmute',

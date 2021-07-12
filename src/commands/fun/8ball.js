@@ -23,7 +23,7 @@ const answers = [
   'Very doubtful.'
 ];
 
-module.exports = class EightBallCommand extends Command {
+module.exports = class EightBall extends Command {
   constructor(client) {
     super(client, {
       name: '8ball',
@@ -36,7 +36,8 @@ module.exports = class EightBallCommand extends Command {
   }
   run(message, args) {
     const question = args.join(' ');
-    if (!question) return this.sendErrorMessage(message, 0, 'Please provide a question to ask');
+    if (!question)
+      return this.sendErrorMessage(message, this.errorTypes.MISSING_ARG, 'Please provide a question to ask');
     const embed = new MessageEmbed()
       .setTitle('🎱  The Magic 8-Ball  🎱')
       .addField('Question', question)

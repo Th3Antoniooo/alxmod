@@ -2,7 +2,7 @@ const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 const { stripIndent } = require('common-tags');
 
-module.exports = class ServerCountCommand extends Command {
+module.exports = class ServerCount extends Command {
   constructor(client) {
     super(client, {
       name: 'servercount',

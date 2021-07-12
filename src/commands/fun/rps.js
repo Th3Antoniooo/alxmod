@@ -3,7 +3,7 @@ const { MessageEmbed } = require('discord.js');
 const rps = ['scissors','rock', 'paper'];
 const res = ['Scissors :v:','Rock :fist:', 'Paper :raised_hand:'];
 
-module.exports = class RockPaperScissorsCommand extends Command {
+module.exports = class RockPaperScissors extends Command {
   constructor(client) {
     super(client, {
       name: 'rps',

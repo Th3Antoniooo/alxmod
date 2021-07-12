@@ -3,7 +3,7 @@ const ReactionMenu = require('../ReactionMenu.js');
 const { MessageEmbed } = require('discord.js');
 const { oneLine } = require('common-tags');
 
-module.exports = class LeaderboardCommand extends Command {
+module.exports = class Leaderboard extends Command {
   constructor(client) {
     super(client, {
       name: 'leaderboard',

@@ -12,7 +12,7 @@ const channelTypes = {
   store: 'Store'
 };
 
-module.exports = class ChannelInfoCommand extends Command {
+module.exports = class ChannelInfo extends Command {
   constructor(client) {
     super(client, {
       name: 'channelinfo',

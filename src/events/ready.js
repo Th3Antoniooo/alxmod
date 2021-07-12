@@ -1,7 +1,10 @@
+/**
+ * Ready Event
+ */
 module.exports = async (client) => {
-  
+
   const activities = [
-    { name: 'your commands', type: 'LISTENING' }, 
+    { name: 'your commands', type: 'LISTENING' },
     { name: '@Calypso', type: 'LISTENING' }
   ];
 
@@ -19,106 +22,53 @@ module.exports = async (client) => {
     activity++;
   }, 30000);
 
-  client.logger.info('Updating database and scheduling jobs...');
+  client.logger.info('Updating guilds...');
+
+  // Snag models
+  const { Guild, GuildMember } = client.db.models;
+
+  // Snag actions
+  const { AddGuild, RemoveGuild, AddMember, RemoveMember } = client.actions;
+
   for (const guild of client.guilds.cache.values()) {
 
-    /** ------------------------------------------------------------------------------------------------
-     * FIND SETTINGS
-     * ------------------------------------------------------------------------------------------------ */ 
-    // Find mod log
-    const modLog = guild.channels.cache.find(c => c.name.replace('-', '').replace('s', '') === 'modlog' || 
-      c.name.replace('-', '').replace('s', '') === 'moderatorlog');
+    // Update cache
+    await guild.members.fetch();
 
-    // Find admin and mod roles
-    const adminRole = 
-      guild.roles.cache.find(r => r.name.toLowerCase() === 'admin' || r.name.toLowerCase() === 'administrator');
-    const modRole = guild.roles.cache.find(r => r.name.toLowerCase() === 'mod' || r.name.toLowerCase() === 'moderator');
-    const muteRole = guild.roles.cache.find(r => r.name.toLowerCase() === 'muted');
-    const crownRole = guild.roles.cache.find(r => r.name === 'The Crown');
+    const created = await AddGuild.run({ guild });
 
-    /** ------------------------------------------------------------------------------------------------
-     * UPDATE TABLES
-     * ------------------------------------------------------------------------------------------------ */ 
-    // Update settings table
-    client.db.settings.insertRow.run(
-      guild.id,
-      guild.name,
-      guild.systemChannelID, // Default channel
-      guild.systemChannelID, // Welcome channel
-      guild.systemChannelID, // Farewell channel
-      guild.systemChannelID,  // Crown Channel
-      modLog ? modLog.id : null,
-      adminRole ? adminRole.id : null,
-      modRole ? modRole.id : null,
-      muteRole ? muteRole.id : null,
-      crownRole ? crownRole.id : null
-    );
-    
-    // Update users table
-    guild.members.cache.forEach(member => {
-      client.db.users.insertRow.run(
-        member.id, 
-        member.user.username, 
-        member.user.discriminator,
-        guild.id, 
-        guild.name,
-        member.joinedAt.toString(),
-        member.user.bot ? 1 : 0
-      );
-    });
-    
-    /** ------------------------------------------------------------------------------------------------
-     * CHECK DATABASE
-     * ------------------------------------------------------------------------------------------------ */ 
-    // If member left
-    const currentMemberIds = client.db.users.selectCurrentMembers.all(guild.id).map(row => row.user_id);
-    for (const id of currentMemberIds) {
+    if (created) client.logger.info(`${client.user.username} joined ${guild.name} while offline`);
+
+    // Grab all member IDs
+    const memberIds = (await GuildMember.findAll({ where: { guildId: guild.id }})).map(row => row.userId);
+
+    // If member left guild while offline
+    for (const id of memberIds) {
       if (!guild.members.cache.has(id)) {
-        client.db.users.updateCurrentMember.run(0, id, guild.id);
-        client.db.users.wipeTotalPoints.run(id, guild.id);
+        await RemoveMember.run({ userId: id, guildId: guild.id });
       }
     }
 
-    // If member joined
-    const missingMemberIds = client.db.users.selectMissingMembers.all(guild.id).map(row => row.user_id);
-    for (const id of missingMemberIds) {
-      if (guild.members.cache.has(id)) client.db.users.updateCurrentMember.run(1, id, guild.id);
-    }
-
-    /** ------------------------------------------------------------------------------------------------
-     * VERIFICATION
-     * ------------------------------------------------------------------------------------------------ */ 
-    // Fetch verification message
-    const { verification_channel_id: verificationChannelId, verification_message_id: verificationMessageId } = 
-      client.db.settings.selectVerification.get(guild.id);
-    const verificationChannel = guild.channels.cache.get(verificationChannelId);
-    if (verificationChannel && verificationChannel.viewable) {
-      try {
-        await verificationChannel.messages.fetch(verificationMessageId);
-      } catch (err) { // Message was deleted
-        client.logger.error(err);
+    // If member joined guild while offline
+    for (const member of guild.members.cache.values()) {
+      if (!memberIds.includes(member.id)) {
+        await AddMember.run({ member });
       }
     }
-
-    /** ------------------------------------------------------------------------------------------------
-     * CROWN ROLE
-     * ------------------------------------------------------------------------------------------------ */ 
-    // Schedule crown role rotation
-    client.utils.scheduleCrown(client, guild);
-
   }
 
-  // Remove left guilds
-  const dbGuilds = client.db.settings.selectGuilds.all();
+  // Remove guilds left while offline
+  const dbGuilds = await Guild.findAll();
   const guilds = client.guilds.cache.array();
-  const leftGuilds = dbGuilds.filter(g1 => !guilds.some(g2 => g1.guild_id === g2.id));
+  const leftGuilds = dbGuilds.filter(g1 => !guilds.some(g2 => g1.id === g2.id));
   for (const guild of leftGuilds) {
-    client.db.settings.deleteGuild.run(guild.guild_id);
-    client.db.users.deleteGuild.run(guild.guild_id);
-
-    client.logger.info(`Calypso has left ${guild.guild_name}`);
+    await RemoveGuild.run({ guild });
+    client.logger.info(`${client.user.username} left ${guild.name} while offline`);
   }
 
-  client.logger.info('Calypso is now online');
-  client.logger.info(`Calypso is running on ${client.guilds.cache.size} server(s)`);
+  // Update presence
+  client.user.setPresence({ status: 'online' });
+
+  client.logger.info(`${client.user.username} is now online`);
+  client.logger.info(`${client.user.username} is running on ${client.guilds.cache.size} server(s)`);
 };

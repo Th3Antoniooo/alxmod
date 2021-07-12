@@ -2,7 +2,7 @@ const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 const ms = require('ms');
 
-module.exports = class MuteCommand extends Command {
+module.exports = class Mute extends Command {
   constructor(client) {
     super(client, {
       name: 'mute',

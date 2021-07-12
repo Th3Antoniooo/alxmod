@@ -1,16 +1,18 @@
 const { MessageEmbed } = require('discord.js');
 const { fail } = require('../utils/emojis.json');
 
-module.exports = (client, guild) => {
+/**
+ * Guild Delete Event
+ */
+module.exports = async (client, guild) => {
 
-  client.logger.info(`Calypso has left ${guild.name}`);
-  const serverLog = client.channels.cache.get(client.serverLogId);
-  if (serverLog)
-    serverLog.send(new MessageEmbed().setDescription(`${client.user} has left **${guild.name}** ${fail}`));
+  client.logger.info(`${client.user.username} has left ${guild.name}`);
+  const serverLogChannel = client.channels.cache.get(client.serverLogChannelId);
+  if (serverLogChannel) {
+    serverLogChannel.send(
+      new MessageEmbed().setDescription(`${client.user.username} has left **${guild.name}** ${fail}`)
+    );
+  }
 
-  client.db.settings.deleteGuild.run(guild.id);
-  client.db.users.deleteGuild.run(guild.id);
-
-  if (guild.job) guild.job.cancel(); // Cancel old job
-
+  await client.actions.RemoveGuild.run({ guild });
 };

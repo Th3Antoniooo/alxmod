@@ -3,7 +3,7 @@ const { MessageEmbed } = require('discord.js');
 const search = require('youtube-search');
 const he = require('he');
 
-module.exports = class YoutubeCommand extends Command {
+module.exports = class Youtube extends Command {
   constructor(client) {
     super(client, {
       name: 'youtube',

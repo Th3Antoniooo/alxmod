@@ -29,7 +29,7 @@ const notifications = {
   MENTIONS: '`Mentions`'
 };
 
-module.exports = class ServerInfoCommand extends Command {
+module.exports = class ServerInfo extends Command {
   constructor(client) {
     super(client, {
       name: 'serverinfo',

@@ -3,7 +3,7 @@ const { MessageEmbed } = require('discord.js');
 
 const rgx = /^(?:<@!?)?(\d+)>?$/;
 
-module.exports = class WipeAllPointsCommand extends Command {
+module.exports = class WipeAllPoints extends Command {
   constructor(client) {
     super(client, {
       name: 'wipeallpoints',

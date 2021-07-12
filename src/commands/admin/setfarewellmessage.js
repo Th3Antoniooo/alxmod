@@ -3,7 +3,7 @@ const { MessageEmbed } = require('discord.js');
 const { success } = require('../../utils/emojis.json');
 const { oneLine } = require('common-tags');
 
-module.exports = class SetFarewellMessageCommand extends Command {
+module.exports = class SetFarewellMessage extends Command {
   constructor(client) {
     super(client, {
       name: 'setfarewellmessage',

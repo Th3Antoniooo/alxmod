@@ -4,7 +4,7 @@ const { MessageEmbed } = require('discord.js');
 // Color hex regex
 const rgx = /^#?[0-9A-F]{6}$/i;
 
-module.exports = class CreateColorCommand extends Command {
+module.exports = class CreateColor extends Command {
   constructor(client) {
     super(client, {
       name: 'createcolor',

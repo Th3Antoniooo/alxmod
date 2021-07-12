@@ -2,7 +2,7 @@ const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 const { success } = require('../../utils/emojis.json');
 
-module.exports = class SetAdminRoleCommand extends Command {
+module.exports = class SetAdminRole extends Command {
   constructor(client) {
     super(client, {
       name: 'setadminrole',

@@ -1,47 +1,59 @@
 const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 const { success } = require('../../utils/emojis.json');
-const { oneLine, stripIndent } = require('common-tags');
+const { oneLine } = require('common-tags');
 
-module.exports = class SetSystemChannelCommand extends Command {
+module.exports = class SetSystemChannel extends Command {
   constructor(client) {
     super(client, {
       name: 'setsystemchannel',
       aliases: ['setsc', 'ssc'],
       usage: 'setsystemchannel <channel mention/ID>',
       description: oneLine`
-        Sets the system text channel for your server. This is where Calypso's system messages will be sent. 
-        Provide no channel to clear the current \`system channel\`. Clearing this setting is **not recommended** 
-        as Calypso requires a \`system channel\` to notify you about important errors.
+        Sets the system text channel for your server, which is where all system messages will be sent.
+        Provide no channel to clear the current \`system channel\`. Clearing this setting is **not recommended**
+        as a \`system channel\` is required to notify you about important errors.
       `,
       type: client.types.ADMIN,
       userPermissions: ['MANAGE_GUILD'],
       examples: ['setsystemchannel #general']
     });
   }
-  run(message, args) {
-    const systemChannelId = message.client.db.settings.selectSystemChannelId.pluck().get(message.guild.id);
-    const oldSystemChannel = message.guild.channels.cache.get(systemChannelId) || '`None`';
-    const embed = new MessageEmbed()
-      .setTitle('Settings: `System`')
-      .setThumbnail(message.guild.iconURL({ dynamic: true }))
-      .setDescription(`The \`system channel\` was successfully updated. ${success}`)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
-      .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
+  async run(message, args) {
 
-    // Clear if no args provided
-    if (args.length === 0) {
-      message.client.db.settings.updateSystemChannelId.run(null, message.guild.id);
-      return message.channel.send(embed.addField('System Channel', `${oldSystemChannel} ➔ \`None\``));
+    const { client } = this;
+    const { guild } = message;
+    const none = '`None`';
+
+    const systemChannelId = client.configs.get(guild.id).systemChannelId;
+    const oldSystemChannel = guild.channels.cache.get(systemChannelId) || none;
+
+    let systemChannel;
+    if (args.length === 0) systemChannel = none; // Clear if no args provided
+    else systemChannel = this.getChannelFromMention(message, args[0]) || guild.channels.cache.get(args[0]);
+
+    if (
+      (!client.isAllowed(systemChannel) || (systemChannel.type != 'text' && systemChannel.type != 'news')) &&
+      systemChannel != none
+    ) {
+      return this.sendErrorMessage(
+        message,
+        this.errorTypes.INVALID_ARG,
+        'Please mention an accessible text or announcement channel or provide a valid text or announcement channel ID'
+      );
     }
 
-    const systemChannel = this.getChannelFromMention(message, args[0]) || message.guild.channels.cache.get(args[0]);
-    if (!systemChannel || (systemChannel.type != 'text' && systemChannel.type != 'news') || !systemChannel.viewable)
-      return this.sendErrorMessage(message, 0, stripIndent`
-        Please mention an accessible text or announcement channel or provide a valid text or announcement channel ID
-      `);
-    message.client.db.settings.updateSystemChannelId.run(systemChannel.id, message.guild.id);
-    message.channel.send(embed.addField('System Channel', `${oldSystemChannel} ➔ ${systemChannel}`));
+    // Update config
+    await this.client.db.updateConfig(guild.id, 'systemChannelId', systemChannel.id || null);
+
+    const embed = new MessageEmbed()
+      .setTitle('Settings: `System`')
+      .setThumbnail(guild.iconURL({ dynamic: true }))
+      .setDescription(`The \`system channel\` was successfully updated. ${success}`)
+      .addField('System Channel', `${oldSystemChannel} ➔ ${systemChannel}`)
+      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setTimestamp()
+      .setColor(guild.me.displayHexColor);
+    message.channel.send(embed);
   }
 };

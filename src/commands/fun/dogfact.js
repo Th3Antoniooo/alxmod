@@ -2,7 +2,7 @@ const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 const fetch = require('node-fetch');
 
-module.exports = class DogFactCommand extends Command {
+module.exports = class DogFact extends Command {
   constructor(client) {
     super(client, {
       name: 'dogfact',

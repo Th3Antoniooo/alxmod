@@ -1,9 +1,8 @@
 const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
-const emojis = require('../../utils/emojis.json');
 const { oneLine, stripIndent } = require('common-tags');
 
-module.exports = class AliasesCommand extends Command {
+module.exports = class Aliases extends Command {
   constructor(client) {
     super(client, {
       name: 'aliases',
@@ -14,95 +13,80 @@ module.exports = class AliasesCommand extends Command {
         If no command type is given, the amount of aliases for every type will be displayed.
       `,
       type: client.types.INFO,
-      examples: ['aliases Fun']
+      examples: ['aliases Info']
     });
   }
   run(message, args) {
 
-    // Get disabled commands
-    let disabledCommands = message.client.db.settings.selectDisabledCommands.pluck().get(message.guild.id) || [];
-    if (typeof(disabledCommands) === 'string') disabledCommands = disabledCommands.split(' ');
-
-    const aliases = {};
     const embed = new MessageEmbed();
-    for (const type of Object.values(message.client.types)) {
-      aliases[type] = [];
-    }
 
-    const type = (args[0]) ? args[0].toLowerCase() : '';
-    const types = Object.values(message.client.types);
-    const { INFO, FUN, COLOR, POINTS, MISC, MOD, ADMIN, OWNER } = message.client.types;
-    const { capitalize } = message.client.utils;
+    const type = args[0] ? args[0].toLowerCase() : '';
+    const types = Object.values(client.types);
+    const { capitalize } = client.utils;
 
-    const emojiMap = {
-      [INFO]: `${emojis.info} ${capitalize(INFO)}`,
-      [FUN]: `${emojis.fun} ${capitalize(FUN)}`,
-      [COLOR]: `${emojis.color} ${capitalize(COLOR)}`,
-      [POINTS]: `${emojis.points} ${capitalize(POINTS)}`,
-      [MISC]: `${emojis.misc} ${capitalize(MISC)}`,
-      [MOD]: `${emojis.mod} ${capitalize(MOD)}`,
-      [ADMIN]: `${emojis.admin} ${capitalize(ADMIN)}`,
-      [OWNER]: `${emojis.owner} ${capitalize(OWNER)}`
-    };
-    
-    if (args[0] && types.includes(type) && (type != OWNER || message.client.isOwner(message.member))) {
-      
-      message.client.commands.forEach(command => {
-        if (command.aliases && command.type === type && !disabledCommands.includes(command.name)) 
-          aliases[command.type].push(`**${command.name}:** ${command.aliases.map(a => `\`${a}\``).join(' ')}`);
+    // List aliases for specific type
+    if (type && types.includes(type)) {
+
+      const aliases = [];
+
+      let total = 0;
+      client.commands.filter(command => command.type === type).forEach(command => {
+        if (command.ownerOnly && !client.isOwner(message.author)) return;
+        if (command.aliases && command.type === type) {
+          aliases.push(`**${command.name}:** ${command.aliases.map(a => `\`${a}\``).join(' ')}`);
+          total += command.aliases.length;
+        }
       });
 
       embed
         .setTitle(`Alias Type: \`${capitalize(type)}\``)
-        .setThumbnail('https://raw.githubusercontent.com/sabattle/CalypsoBot/develop/data/images/Calypso.png')
-        .addField(
-          `**${emojiMap[type]} [${aliases[type].reduce((a, b) => a + b.split(' ').slice(1).length, 0)}]**`, 
-          aliases[type].join('\n')
-        )
+        .addField(`**[${total}]**`, aliases.join('\n'))
         .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
         .setTimestamp()
         .setColor(message.guild.me.displayHexColor);
 
+    // Invalid alias type provided
     } else if (type) {
-      return this.sendErrorMessage(message, 0, 'Unable to find command type, please check provided type');
-
-    } else {
-
-      message.client.commands.forEach(command => {
-        if (command.aliases && !disabledCommands.includes(command.name)) 
-          aliases[command.type].push(`**${command.name}:** ${command.aliases.map(a => `\`${a}\``).join(' ')}`);
-      });
-
-      const prefix = message.client.db.settings.selectPrefix.pluck().get(message.guild.id);
-
-      embed
-        .setTitle('Calypso\'s Alias Types')
-        .setDescription(stripIndent`
-          **Prefix:** \`${prefix}\`
-          **More Information:** \`${prefix}aliases [command type]\`
-        `)
-        .setImage('https://raw.githubusercontent.com/sabattle/CalypsoBot/develop/data/images/Calypso_Title.png')
-        .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
-        .setTimestamp()
-        .setColor(message.guild.me.displayHexColor);
-
-      for (const type of Object.values(message.client.types)) {
-        if (type === OWNER && !message.client.isOwner(message.member)) continue;
-        if (aliases[type][0]) 
-          embed.addField(
-            `**${emojiMap[type]}**`, `
-            \`${aliases[type].reduce((a, b) => a + b.split(' ').slice(1).length, 0)}\` aliases`, 
-            true
-          );
-      }
-
-      embed.addField(
-        '**Links**', 
-        '**[Invite Me](https://discordapp.com/oauth2/authorize?client_id=416451977380364288&scope=bot&permissions=403008599) | ' +
-        '[Support Server](https://discord.gg/pnYVdut) | ' +
-        '[Repository](https://github.com/sabattle/CalypsoBot)**'
+      return this.sendErrorMessage(
+        message, this.errorTypes.INVALID_ARG, 'Unable to find alias type, please check provided type'
       );
 
+    // List all alias types
+    } else {
+
+      const aliases = {};
+      for (const type of Object.values(client.types)) {
+        aliases[type] = 0;
+      }
+
+      client.commands.forEach(command => {
+        if (!command.ownerOnly || client.isOwner(message.author)) {
+          if (command.aliases) {
+            // eslint-disable-next-line no-unused-vars
+            for (const alias of command.aliases) aliases[command.type]++;
+          }
+        }
+      });
+
+      const { prefix } = client;
+
+      embed
+        .setTitle('Alias Types')
+        .setDescription(stripIndent`
+          **Prefix:** \`${prefix}\`
+          **More Information:** \`${prefix}${this.name} [command type]\`
+        `)
+        .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+        .setTimestamp()
+        .setColor(message.guild.me.displayHexColor);
+
+      for (const type of Object.keys(aliases)) {
+        if (aliases[type] > 0) {
+          embed.addField(oneLine`
+            **${capitalize(type)}**`, `\`${aliases[type]}\` alias${aliases[type] > 1 ? 'es' : ''}
+          `, true);
+        }
+      }
     }
 
     message.channel.send(embed);

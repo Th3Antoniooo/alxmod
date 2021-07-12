@@ -3,7 +3,7 @@ const { MessageEmbed } = require('discord.js');
 const { success, fail } = require('../../utils/emojis.json');
 const { oneLine } = require('common-tags');
 
-module.exports = class ToggleTypeCommand extends Command {
+module.exports = class ToggleType extends Command {
   constructor(client) {
     super(client, {
       name: 'toggletype',

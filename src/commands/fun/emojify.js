@@ -14,7 +14,7 @@ const numberMap = {
   '9': ':nine:',
 };
 
-module.exports = class EmojifyCommand extends Command {
+module.exports = class Emojify extends Command {
   constructor(client) {
     super(client, {
       name: 'emojify',

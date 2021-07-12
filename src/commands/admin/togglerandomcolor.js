@@ -2,7 +2,7 @@ const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 const { success, fail } = require('../../utils/emojis.json');
 
-module.exports = class ToggleRandomColorCommand extends Command {
+module.exports = class ToggleRandomColor extends Command {
   constructor(client) {
     super(client, {
       name: 'togglerandomcolor',

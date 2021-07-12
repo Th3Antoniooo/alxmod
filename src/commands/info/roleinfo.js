@@ -3,7 +3,7 @@ const { MessageEmbed } = require('discord.js');
 const moment = require('moment');
 const permissions = require('../../utils/permissions.json');
 
-module.exports = class RoleInfoCommand extends Command {
+module.exports = class RoleInfo extends Command {
   constructor(client) {
     super(client, {
       name: 'roleinfo',

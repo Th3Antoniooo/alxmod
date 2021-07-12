@@ -1,7 +1,7 @@
 const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 
-module.exports = class FindIdCommand extends Command {
+module.exports = class FindId extends Command {
   constructor(client) {
     super(client, {
       name: 'findid',
@@ -13,11 +13,14 @@ module.exports = class FindIdCommand extends Command {
     });
   }
   run(message, args) {
-    const target = this.getMemberFromMention(message, args[0]) || 
-      this.getRoleFromMention(message, args[0]) || 
+    const target = this.getMemberFromMention(message, args[0]) ||
+      this.getRoleFromMention(message, args[0]) ||
       this.getChannelFromMention(message, args[0]);
-    if (!target) 
-      return this.sendErrorMessage(message, 0, 'Please mention a user, role, or text channel');
+    if (!target) return this.sendErrorMessage(
+      message,
+      args[0] ? this.errorTypes.INVALID_ARG : this.errorTypes.MISSING_ARG,
+      'Please mention a user, role, or text channel'
+    );
     const id = target.id;
     const embed = new MessageEmbed()
       .setTitle('Find ID')

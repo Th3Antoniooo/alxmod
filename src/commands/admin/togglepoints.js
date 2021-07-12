@@ -2,7 +2,7 @@ const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 const { success, fail } = require('../../utils/emojis.json');
 
-module.exports = class TogglePointsCommand extends Command {
+module.exports = class TogglePoints extends Command {
   constructor(client) {
     super(client, {
       name: 'togglepoints',

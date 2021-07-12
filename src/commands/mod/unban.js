@@ -3,7 +3,7 @@ const { MessageEmbed } = require('discord.js');
 
 const rgx = /^(?:<@!?)?(\d+)>?$/;
 
-module.exports = class UnbanCommand extends Command {
+module.exports = class Unban extends Command {
   constructor(client) {
     super(client, {
       name: 'unban',

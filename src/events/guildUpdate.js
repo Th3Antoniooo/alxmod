@@ -1,10 +1,14 @@
-module.exports = (client, oldGuild, newGuild) => {
-  
+/**
+ * Guild Update Event
+ */
+module.exports = async (client, oldGuild, newGuild) => {
   if (oldGuild.name == newGuild.name) return;
-  
-  // Update DB with new name
-  client.db.settings.updateGuildName.run(newGuild.name, oldGuild.id);
-  client.db.users.updateGuildName.run(newGuild.name, oldGuild.id);
+
+  // Update guild name
+  const { Guild } = client.db.models;
+  const guild = await Guild.findOne({ where: { guildId: oldGuild.id }});
+  guild.name = newGuild.name;
+  await guild.save();
 
   client.logger.info(`${oldGuild.name} server name changed to ${newGuild.name}`);
 };

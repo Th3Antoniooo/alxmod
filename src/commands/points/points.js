@@ -1,7 +1,7 @@
 const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 
-module.exports = class PointsCommand extends Command {
+module.exports = class Points extends Command {
   constructor(client) {
     super(client, {
       name: 'points',

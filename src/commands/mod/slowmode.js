@@ -2,7 +2,7 @@ const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 const { oneLine, stripIndent } = require('common-tags');
 
-module.exports = class SlowmodeCommand extends Command {
+module.exports = class Slowmode extends Command {
   constructor(client) {
     super(client, {
       name: 'slowmode',

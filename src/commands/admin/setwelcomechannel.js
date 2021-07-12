@@ -3,7 +3,7 @@ const { MessageEmbed } = require('discord.js');
 const { success } = require('../../utils/emojis.json');
 const { oneLine, stripIndent } = require('common-tags');
 
-module.exports = class SetWelcomeChannelCommand extends Command {
+module.exports = class SetWelcomeChannel extends Command {
   constructor(client) {
     super(client, {
       name: 'setwelcomechannel',

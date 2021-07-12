@@ -1,9 +1,11 @@
-module.exports = (client, oldUser, newUser) => {
-
-  // Update user in db
+/**
+ * User Update Event
+ */
+module.exports = async (client, oldUser, newUser) => {
   if (oldUser.username != newUser.username || oldUser.discriminator != newUser.discriminator) {
-    client.db.users.updateUser.run(newUser.username, newUser.discriminator, newUser.id);
+
+    await client.actions.UpdateUsername.run({ oldUser, newUser });
+
     client.logger.info(`${oldUser.tag} user tag changed to ${newUser.tag}`);
   }
-
 };

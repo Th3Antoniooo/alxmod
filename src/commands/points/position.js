@@ -2,7 +2,7 @@ const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 const { oneLine } = require('common-tags');
 
-module.exports = class PositionCommand extends Command {
+module.exports = class Position extends Command {
   constructor(client) {
     super(client, {
       name: 'position',

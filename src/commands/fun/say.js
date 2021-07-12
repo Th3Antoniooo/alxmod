@@ -1,7 +1,7 @@
 const Command = require('../Command.js');
 const { oneLine, stripIndent } = require('common-tags');
 
-module.exports = class SayCommand extends Command {
+module.exports = class Say extends Command {
   constructor(client) {
     super(client, {
       name: 'say',

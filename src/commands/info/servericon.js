@@ -1,7 +1,7 @@
 const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 
-module.exports = class ServerIconCommand extends Command {
+module.exports = class ServerIcon extends Command {
   constructor(client) {
     super(client, {
       name: 'servericon',

@@ -4,7 +4,7 @@ const moment = require('moment');
 const { mem, cpu, os } = require('node-os-utils');
 const { stripIndent } = require('common-tags');
 
-module.exports = class StatsCommand extends Command {
+module.exports = class Stats extends Command {
   constructor(client) {
     super(client, {
       name: 'stats',

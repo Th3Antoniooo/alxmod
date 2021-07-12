@@ -1,7 +1,7 @@
 const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 
-module.exports = class RemoveRoleCommand extends Command {
+module.exports = class RemoveRole extends Command {
   constructor(client) {
     super(client, {
       name: 'removerole',

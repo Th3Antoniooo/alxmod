@@ -4,7 +4,7 @@ const fs = require('fs');
 const YAML = require('yaml');
 const { oneLine } = require('common-tags');
 
-module.exports = class TriviaCommand extends Command {
+module.exports = class Trivia extends Command {
   constructor(client) {
     super(client, {
       name: 'trivia',
