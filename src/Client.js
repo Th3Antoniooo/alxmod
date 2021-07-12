@@ -1,10 +1,11 @@
 const Discord = require('discord.js');
 const Database = require('./db/Database.js');
 const ConfigCache = require('./ConfigCache.js');
-const { readdirSync } = require('fs');
+const { readdirSync, readFileSync } = require('fs');
 const { join, resolve } = require('path');
 const Table = require('cli-table');
 const chalk = require('chalk');
+const YAML = require('yaml');
 const { fail } = require('./utils/emojis.json');
 
 /**
@@ -59,16 +60,40 @@ class Client extends Discord.Client {
     this.aliases = new Discord.Collection();
 
     /**
+     * Array of trivia topics
+     * @type {Array<string>}
+     */
+    this.topics = [];
+
+    /**
      * Login token
      * @type {string}
      */
     this._token = config.token;
 
     /**
+     * API keys
+     * @type {Object}
+     */
+    this.apiKeys = config.apiKeys;
+
+    /**
      * All owner IDs
      * @type {Array<string>}
      */
     this.ownerIds = config.ownerIds;
+
+    /**
+     * Bug report channel ID
+     * @type {string}
+     */
+    this.bugReportChannelId = config.bugReportChannelId;
+
+    /**
+     * Feedback channel ID
+     * @type {string}
+     */
+    this.feedbackChannelId = config.feedbackChannelId;
 
     /**
      * Server log channel ID
@@ -231,8 +256,48 @@ class Client extends Discord.Client {
     if (files.length === 0) this.logger.warn('No actions found');
     else {
       this.logger.info(`\n${table.toString()}`);
-      this.logger.info(`Loaded ${files.length} event(s)`);
+      this.logger.info(`Loaded ${files.length} action(s)`);
     }
+    return this;
+  }
+
+  /**
+   * Loads all available trivia topics
+   * @param {string} path
+   */
+  _loadTriviaTopics(path) {
+
+    this.logger.info('Loading topics...');
+    const table = new Table({
+      head: ['File', 'Name', 'Status'],
+      chars: { 'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': '' },
+      style: {
+        head: ['yellow']
+      }
+    });
+
+    const files = readdirSync(path).filter(f => f.endsWith('.yml'));
+
+    files.forEach(f => {
+      try {
+        YAML.parse(readFileSync(resolve(__basedir, join(path, f)), 'utf-8')); // Check if YAML is valid
+        const topic = f.substring(0, f.indexOf('.'));
+        this.topics.push(topic);
+        table.push([f, topic, chalk['green']('pass')]);
+      } catch (err) {
+        this.logger.error(err.stack);
+        this.logger.warn(`${f} failed to load`);
+        table.push([f, '', chalk['red']('fail')]);
+        return;
+      }
+    });
+
+    if (files.length === 0) return this.logger.warn('No trivia topics found');
+    else {
+      this.logger.info(`\n${table.toString()}`);
+      this.logger.info(`Loaded ${files.length} trivia topics(s)`);
+    }
+
     return this;
   }
 
@@ -292,6 +357,7 @@ class Client extends Discord.Client {
     this._loadCommands(resolve(__basedir, './src/commands'));
     this._loadEvents(resolve(__basedir, './src/events'));
     this._loadActions(resolve(__basedir, './src/actions'));
+    this._loadTriviaTopics(resolve(__basedir, './data/trivia'));
     await this.db.init(resolve(__basedir, './src/db/models'));
     await this.login(this._token);
   }

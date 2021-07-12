@@ -42,7 +42,7 @@
     "brace-style": [2, "1tbs", { "allowSingleLine": true }],
     "curly": ["error", "multi-line"],
     "eol-last": ["error", "always"],
-    "no-multiple-empty-lines": ["error", { "max": 2, "maxEOF": 0 }],
+    "no-multiple-empty-lines": ["error", { "max": 1, "maxEOF": 0 }],
     "require-await": 2,
     "no-console": 0
   },
