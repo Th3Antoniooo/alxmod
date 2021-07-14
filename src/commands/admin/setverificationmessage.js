@@ -43,7 +43,7 @@ module.exports = class SetVerificationMessage extends Command {
       .setDescription(`The \`verification message\` was successfully updated. ${success}`)
       .addField('Role', verificationRole || '`None`', true)
       .addField('Channel', verificationChannel || '`None`', true)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
 

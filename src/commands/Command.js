@@ -28,8 +28,8 @@ class Command {
   /**
    * Creates instance of Command
    * @constructor
-   * @param {Client} client
-   * @param {Object} options
+   * @param {Client} client - The client that owns this command
+   * @param {Object} options - All of the possible options for the command
    */
   constructor(client, options) {
 
@@ -141,7 +141,7 @@ class Command {
    */
   // eslint-disable-next-line no-unused-vars
   run(message, args) {
-    throw new Error(`The ${this.name} command has no run() method`);
+    throw new Error('The run() method must be implemented');
   }
 
   /**

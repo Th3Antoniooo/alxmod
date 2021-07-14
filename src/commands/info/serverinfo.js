@@ -103,7 +103,7 @@ module.exports = class ServerInfo extends Command {
       .addField('Verified', `\`${message.guild.verified}\``, true)
       .addField('Created On', `\`${moment(message.guild.createdAt).format('MMM DD YYYY')}\``, true)
       .addField('Server Stats', `\`\`\`asciidoc\n${serverStats}\`\`\``)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
     if (message.guild.description) embed.setDescription(message.guild.description);

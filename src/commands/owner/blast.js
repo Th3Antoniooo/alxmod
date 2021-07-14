@@ -65,7 +65,7 @@ class Blast extends Command {
       const embed = new MessageEmbed()
         .setTitle('Blast Failures')
         .setDescription(description)
-        .setFooter(member.displayName,  author.displayAvatarURL({ dynamic: true }))
+        .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
         .setTimestamp()
         .setColor(guild.me.displayHexColor);
       channel.send(embed);

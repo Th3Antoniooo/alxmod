@@ -27,7 +27,7 @@ module.exports = class Gallery extends Command {
       .setDescription('All art courtesy of **CommradeFido#5286**.')
       .setImage(art[n])
       .setFooter(
-        'Expires after three minutes.\n' + message.member.displayName,  
+        'Expires after three minutes.\n' + message.member.displayName, 
         message.author.displayAvatarURL({ dynamic: true })
       )
       .setTimestamp()

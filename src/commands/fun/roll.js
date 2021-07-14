@@ -23,7 +23,7 @@ module.exports = class Roll extends Command {
     const embed = new MessageEmbed()
       .setTitle('🎲  Dice Roll  🎲')
       .setDescription(`${message.member}, you rolled a **${n}**!`)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
     message.channel.send(embed);

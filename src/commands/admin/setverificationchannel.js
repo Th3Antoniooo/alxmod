@@ -48,7 +48,7 @@ module.exports = class SetVerificationChannel extends Command {
       .addField('Role', verificationRole || '`None`', true)
       .addField('Message', verificationMessage || '`None`')
       .setThumbnail(message.guild.iconURL({ dynamic: true }))
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
 

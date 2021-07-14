@@ -40,7 +40,7 @@ module.exports = class ChannelInfo extends Command {
       .addField('Members', `\`${channel.members.size}\``, true)
       .addField('Bots', `\`${channel.members.array().filter(b => b.user.bot).length}\``, true)
       .addField('Created On', `\`${moment(channel.createdAt).format('MMM DD YYYY')}\``, true)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
     if (channel.type === 'text') {

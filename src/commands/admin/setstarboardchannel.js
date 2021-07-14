@@ -25,7 +25,7 @@ module.exports = class SetStarboardChannel extends Command {
       .setTitle('Settings: `Starboard`')
       .setThumbnail(message.guild.iconURL({ dynamic: true }))
       .setDescription(`The \`starboard channel\` was successfully updated. ${success}`)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
 

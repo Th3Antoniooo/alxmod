@@ -1,7 +1,18 @@
 const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 
-module.exports = class FindId extends Command {
+/**
+ * Calypso's FindId command
+ * @extends Command
+ */
+class FindId extends Command {
+
+  /**
+   * Creates instance of FindId command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'findid',
@@ -12,23 +23,40 @@ module.exports = class FindId extends Command {
       examples: ['findid @Nettles', 'findid #general']
     });
   }
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
   run(message, args) {
+
+    // Get target
     const target = this.getMemberFromMention(message, args[0]) ||
       this.getRoleFromMention(message, args[0]) ||
       this.getChannelFromMention(message, args[0]);
-    if (!target) return this.sendErrorMessage(
-      message,
-      args[0] ? this.errorTypes.INVALID_ARG : this.errorTypes.MISSING_ARG,
-      'Please mention a user, role, or text channel'
-    );
-    const id = target.id;
+
+    // If no target is not valid
+    const { INVALID_ARG, MISSING_ARG } = this.errorTypes;
+    if (!target) {
+      return this.sendErrorMessage(
+        message, args[0] ? INVALID_ARG : MISSING_ARG, 'Please mention a user, role, or text channel'
+      );
+    }
+
+    const { id } = target;
+    const { guild, channel, member, author } = message;
+
     const embed = new MessageEmbed()
       .setTitle('Find ID')
       .addField('Target', target, true)
       .addField('ID', `\`${id}\``, true)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
-    message.channel.send(embed);
+      .setColor(guild.me.displayHexColor);
+    channel.send(embed);
   }
-};
+}
+
+module.exports = FindId;

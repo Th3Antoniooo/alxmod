@@ -51,7 +51,7 @@ module.exports = class SetSystemChannel extends Command {
       .setThumbnail(guild.iconURL({ dynamic: true }))
       .setDescription(`The \`system channel\` was successfully updated. ${success}`)
       .addField('System Channel', `${oldSystemChannel} ➔ ${systemChannel}`)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(guild.me.displayHexColor);
     message.channel.send(embed);

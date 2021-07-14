@@ -33,7 +33,7 @@ module.exports = class Unban extends Command {
       .addField('Moderator', message.member, true)
       .addField('Member', user.tag, true)
       .addField('Reason', reason)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
 

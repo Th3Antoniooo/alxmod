@@ -40,7 +40,7 @@ module.exports = class Unmute extends Command {
         .setTitle('Unmute Member')
         .setDescription(`${member} has been unmuted.`)
         .addField('Reason', reason)
-        .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+        .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
         .setTimestamp()
         .setColor(message.guild.me.displayHexColor);
       message.channel.send(embed);

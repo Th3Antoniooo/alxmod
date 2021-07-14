@@ -18,7 +18,7 @@ module.exports = class Fox extends Command {
       const embed = new MessageEmbed()
         .setTitle('🦊  What does the fox say?  🦊')
         .setImage(img)
-        .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+        .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
         .setTimestamp()
         .setColor(message.guild.me.displayHexColor);
       message.channel.send(embed);

@@ -38,7 +38,7 @@ module.exports = class Leaderboard extends Command {
     const embed = new MessageEmbed()
       .setThumbnail(message.guild.iconURL({ dynamic: true }))
       .setFooter(
-        `${message.member.displayName}'s position: ${position + 1}`,  
+        `${message.member.displayName}'s position: ${position + 1}`, 
         message.author.displayAvatarURL({ dynamic: true })
       )
       .setTimestamp()
@@ -59,7 +59,7 @@ module.exports = class Leaderboard extends Command {
         .setTitle('Points Leaderboard')
         .setThumbnail(message.guild.iconURL({ dynamic: true }))
         .setFooter(
-          'Expires after two minutes.\n' + `${message.member.displayName}'s position: ${position + 1}`,  
+          'Expires after two minutes.\n' + `${message.member.displayName}'s position: ${position + 1}`, 
           message.author.displayAvatarURL({ dynamic: true })
         );
       

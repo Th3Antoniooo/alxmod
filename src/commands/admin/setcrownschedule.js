@@ -57,7 +57,7 @@ module.exports = class SetCrownSchedule extends Command {
       .addField('Role', crownRole || '`None`', true)
       .addField('Channel', crownChannel || '`None`', true)
       .addField('Message', message.client.utils.replaceCrownKeywords(crownMessage) || '`None`')
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
 

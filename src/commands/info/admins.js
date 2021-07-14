@@ -47,7 +47,7 @@ module.exports = class Admins extends Command {
         .setTitle('Admin List')
         .setThumbnail(message.guild.iconURL({ dynamic: true }))
         .setFooter(
-          'Expires after two minutes.\n' + message.member.displayName,  
+          'Expires after two minutes.\n' + message.member.displayName, 
           message.author.displayAvatarURL({ dynamic: true })
         );
 

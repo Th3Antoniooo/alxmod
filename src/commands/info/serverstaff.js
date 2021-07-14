@@ -47,7 +47,7 @@ module.exports = class ServerStaff extends Command {
       .setThumbnail(message.guild.iconURL({ dynamic: true }))
       .addField(`Admins [${adminList.length}]`, admins, true)
       .addField(`Mods [${modList.length}]`, mods, true)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
     message.channel.send(embed);

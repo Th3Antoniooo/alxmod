@@ -26,7 +26,7 @@ module.exports = class SetPrefix extends Command {
       .setThumbnail(message.guild.iconURL({ dynamic: true }))
       .setDescription(`The \`prefix\` was successfully updated. ${success}`)
       .addField('Prefix', `\`${oldPrefix}\` ➔ \`${prefix}\``)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
     message.channel.send(embed);

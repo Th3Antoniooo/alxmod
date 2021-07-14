@@ -35,7 +35,7 @@ module.exports = class Nickname extends Command {
           .setDescription(`${message.member}'s nickname was successfully updated.`)
           .addField('Member', message.member, true)
           .addField('Nickname', nicknameStatus, true)
-          .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+          .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
           .setTimestamp()
           .setColor(message.guild.me.displayHexColor);
         message.channel.send(embed);

@@ -22,7 +22,7 @@ module.exports = class TotalPoints extends Command {
       .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
       .addField('Member', message.member, true)
       .addField('Points', `\`${points}\``, true)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(member.displayHexColor);
     message.channel.send(embed);

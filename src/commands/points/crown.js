@@ -27,7 +27,7 @@ module.exports = class Crown extends Command {
       .setDescription(description)
       .addField('Crown Role', crownRole)
       .addField('Crown Schedule', `\`${crownSchedule || 'None'}\``)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
     message.channel.send(embed);

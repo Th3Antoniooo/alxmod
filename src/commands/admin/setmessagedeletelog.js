@@ -25,7 +25,7 @@ module.exports = class SetMessageDeleteLog extends Command {
       .setTitle('Settings: `Logging`')
       .setThumbnail(message.guild.iconURL({ dynamic: true }))
       .setDescription(`The \`message delete log\` was successfully updated. ${success}`)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
 

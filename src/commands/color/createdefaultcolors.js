@@ -54,7 +54,7 @@ module.exports = class CreateDefaultColors extends Command {
       .setThumbnail(message.guild.iconURL({ dynamic: true }))
       .setDescription(`Created \`${len - fails}\` of  \`${len}\` default colors.`)
       .addField('Colors Created', (colorList.length > 0) ? colorList.reverse().join(' ') : '`None`')
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
     msg.edit(embed);

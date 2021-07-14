@@ -36,7 +36,7 @@ module.exports = class SetWelcomeChannel extends Command {
       .setDescription(`The \`welcome channel\` was successfully updated. ${success}`)
       .addField('Message', message.client.utils.replaceKeywords(welcomeMessage) || '`None`')
       .setThumbnail(message.guild.iconURL({ dynamic: true }))
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
 

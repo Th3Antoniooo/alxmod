@@ -86,7 +86,7 @@ module.exports = class Settings extends Command {
     if (setting.endsWith('setting')) setting = setting.slice(0, -7);
     const embed = new MessageEmbed()
       .setThumbnail(message.guild.iconURL({ dynamic: true }))
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
     switch (setting) {

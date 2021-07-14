@@ -24,7 +24,7 @@ module.exports = class Ping extends Command {
       .setDescription('')
       .addField('Latency', latency, true)
       .addField('API Latency', apiLatency, true)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp();
     msg.edit(embed);
   }

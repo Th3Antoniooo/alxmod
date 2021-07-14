@@ -30,7 +30,7 @@ module.exports = class Position extends Command {
       .setDescription(`${member} is in **${ordinalPos}** place!`)
       .addField('Position', `\`${pos}\` of \`${message.guild.members.cache.size}\``, true)
       .addField('Points', `\`${points}\``, true)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(member.displayHexColor);
     message.channel.send(embed);

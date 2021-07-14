@@ -73,7 +73,7 @@ module.exports = class ExplainPoints extends Command {
       .setTitle('Points and Crown')
       .setThumbnail(message.guild.iconURL({ dynamic: true }))
       .addField('Earning Points', earningPoints)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
     if (checkingPoints) embed.addField('Checking Points', checkingPoints);

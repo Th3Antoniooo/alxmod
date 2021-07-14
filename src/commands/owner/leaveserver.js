@@ -50,7 +50,7 @@ class LeaveServer extends Command {
     const embed = new MessageEmbed()
       .setTitle('Leave Server')
       .setDescription(`I have successfully left **${guild.name}**.`)
-      .setFooter(member.displayName,  author.displayAvatarURL({ dynamic: true }))
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
     channel.send(embed);

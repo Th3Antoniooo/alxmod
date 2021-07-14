@@ -30,7 +30,7 @@ module.exports = class ReportBug extends Command {
       .setDescription(report) 
       .addField('User', message.member, true)
       .addField('Server', message.guild.name, true)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
     reportChannel.send(reportEmbed);
@@ -47,7 +47,7 @@ module.exports = class ReportBug extends Command {
       `) 
       .addField('Member', message.member, true)
       .addField('Message', report)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
     message.channel.send(embed);

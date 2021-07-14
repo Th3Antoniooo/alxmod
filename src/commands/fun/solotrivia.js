@@ -44,7 +44,7 @@ module.exports = class SoloTrivia extends Command {
       .setTitle('Solo Trivia')
       .addField('Topic', `\`${topic}\``)
       .addField('Question', `${question}`)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
     const url = question.match(/\bhttps?:\/\/\S+/gi);
@@ -63,7 +63,7 @@ module.exports = class SoloTrivia extends Command {
     collector.on('end', () => {
       const answerEmbed = new MessageEmbed()
         .setTitle('Solo Trivia')
-        .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+        .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
         .setTimestamp()
         .setColor(message.guild.me.displayHexColor);
       if (winner) 

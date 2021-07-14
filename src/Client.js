@@ -9,7 +9,7 @@ const YAML = require('yaml');
 const { fail } = require('./utils/emojis.json');
 
 /**
- * Calypso's custom client
+ * Calypso's Client class
  * @extends Discord.Client
  */
 class Client extends Discord.Client {
@@ -34,9 +34,9 @@ class Client extends Discord.Client {
 
   /**
    * Creates instance of Client
-   * @param {Object} config
-   * @param {ClientOptions} options
    * @constructor
+   * @param {Object} config - All client configuration options
+   * @param {ClientOptions} options - ClientOptions that should be passed to the parent
    */
   constructor(config, options = {}) {
 

@@ -40,7 +40,7 @@ module.exports = class GivePoints extends Command {
       .addField('From', message.member, true)
       .addField('To', member, true)
       .addField('Points', `\`${oldPoints}\` ➔ \`${amount + oldPoints}\``, true)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(member.displayHexColor);
     message.channel.send(embed);

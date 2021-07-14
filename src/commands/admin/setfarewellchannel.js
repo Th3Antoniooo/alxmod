@@ -35,7 +35,7 @@ module.exports = class SetFarewellChannel extends Command {
       .setDescription(`The \`farewell channel\` was successfully updated. ${success}`)
       .addField('Message', message.client.utils.replaceKeywords(farewellMessage) || '`None`')
       .setThumbnail(message.guild.iconURL({ dynamic: true }))
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
 

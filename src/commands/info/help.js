@@ -36,7 +36,7 @@ module.exports = class Help extends Command {
         .setDescription(command.description)
         .addField('Usage', `\`${prefix}${command.usage}\``, true)
         .addField('Type', `\`${capitalize(command.type)}\``, true)
-        .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+        .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
         .setTimestamp()
         .setColor(guild.me.displayHexColor);
       if (command.aliases) embed.addField('Aliases', command.aliases.map(c => `\`${c}\``).join(' '));

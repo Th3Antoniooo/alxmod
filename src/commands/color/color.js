@@ -22,7 +22,7 @@ module.exports = class Color extends Command {
       .setTitle('Color Change')
       .setThumbnail(message.member.user.displayAvatarURL({ dynamic: true }))
       .addField('Member', message.member, true)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp();
     const colors = message.guild.roles.cache.filter(c => c.name.startsWith('#'));
     const colorName = args.join('').toLowerCase();

@@ -44,7 +44,7 @@ module.exports = class RoleInfo extends Command {
       .addField('Hoisted', `\`${role.hoist}\``, true)
       .addField('Created On', `\`${moment(role.createdAt).format('MMM DD YYYY')}\``, true)
       .addField('Permissions', `\`\`\`diff\n${finalPermissions.join('\n')}\`\`\``)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(role.hexColor);
     message.channel.send(embed);

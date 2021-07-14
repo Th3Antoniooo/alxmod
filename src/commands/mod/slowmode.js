@@ -49,7 +49,7 @@ module.exports = class Slowmode extends Command {
     const status = (channel.rateLimitPerUser) ? 'enabled' : 'disabled';
     const embed = new MessageEmbed()
       .setTitle('Slowmode')
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
 

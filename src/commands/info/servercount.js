@@ -20,7 +20,7 @@ module.exports = class ServerCount extends Command {
     const embed = new MessageEmbed()
       .setTitle('Calypso\'s Server Count')
       .setDescription(stripIndent`\`\`\`asciidoc\n${counts}\`\`\``)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
     message.channel.send(embed);

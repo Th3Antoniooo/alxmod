@@ -27,7 +27,7 @@ module.exports = class Feedback extends Command {
       .setDescription(feedback)
       .addField('User', message.member, true)
       .addField('Server', message.guild.name, true)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
     feedbackChannel.send(feedbackEmbed);
@@ -43,7 +43,7 @@ module.exports = class Feedback extends Command {
       `) 
       .addField('Member', message.member, true)
       .addField('Message', feedback)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
     message.channel.send(embed);

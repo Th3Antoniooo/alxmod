@@ -70,7 +70,7 @@ module.exports = class Purge extends Command {
           .addField('Channel', channel, true)
           .addField('Member', member )
           .addField('Found Messages', `\`${messages.size}\``, true)
-          .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+          .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
           .setTimestamp()
           .setColor(message.guild.me.displayHexColor)
       ).then(msg => msg.delete({ timeout: 10000 })).catch(err => message.client.logger.error(err.stack));
@@ -87,7 +87,7 @@ module.exports = class Purge extends Command {
           .addField('Channel', channel, true)
           .addField('Message Count', `\`${messages.size}\``, true)
           .addField('Reason', reason)
-          .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+          .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
           .setTimestamp()
           .setColor(message.guild.me.displayHexColor);
   

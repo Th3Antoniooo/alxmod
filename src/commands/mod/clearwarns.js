@@ -36,7 +36,7 @@ module.exports = class ClearWarns extends Command {
       .addField('Member', member, true)
       .addField('Warn Count', '`0`', true)
       .addField('Reason', reason)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
     message.channel.send(embed);

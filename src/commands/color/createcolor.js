@@ -38,7 +38,7 @@ module.exports = class CreateColor extends Command {
         .setDescription(`Successfully created the ${role} color.`)
         .addField('Hex', `\`${hex}\``, true)
         .addField('Color Name', `\`${colorName.slice(1, colorName.length)}\``, true)
-        .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+        .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
         .setTimestamp()
         .setColor(hex);
       message.channel.send(embed);

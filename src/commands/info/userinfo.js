@@ -81,7 +81,7 @@ module.exports = class UserInfo extends Command {
       .addField('Joined server on', `\`${moment(member.joinedAt).format('MMM DD YYYY')}\``, true)
       .addField('Joined Discord on', `\`${moment(member.user.createdAt).format('MMM DD YYYY')}\``, true)
       .addField('Roles', roles || '`None`')
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(member.displayHexColor);
     if (activities.length > 0) embed.setDescription(activities.join('\n'));

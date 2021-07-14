@@ -20,7 +20,7 @@ module.exports = class Colors extends Command {
     
     const embed = new MessageEmbed()
       .setTitle(`Available Colors [${colors.size}]`)
-      .setFooter(message.member.displayName,  message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(message.guild.me.displayHexColor);
 
@@ -44,7 +44,7 @@ module.exports = class Colors extends Command {
         .setTitle('Available Colors ' + getRange(colors, n, interval))
         .setThumbnail(message.guild.iconURL({ dynamic: true }))
         .setFooter(
-          'Expires after two minutes.\n' + message.member.displayName,  
+          'Expires after two minutes.\n' + message.member.displayName, 
           message.author.displayAvatarURL({ dynamic: true })
         )
         .setDescription(`
