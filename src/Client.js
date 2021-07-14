@@ -15,22 +15,41 @@ const { fail } = require('./utils/emojis.json');
 class Client extends Discord.Client {
 
   /**
-   * Create a new client
+   * @property {Object} logger - The logger for the client
+   * @property {Database} db - A wrapper around the Sequelize ORM
+   * @property {ConfigCache<string, GuildConfig>} configs - A cache where all guild configs are kept
+   * @property {Object} types - All of the command categories
+   * @property {Collection<string, Command>} commands - A Collection of commands, mapped by their name
+   * @property {Collection<string, Command>} aliases - A Collection of aliases for commands, mapped by the alias
+   * @property {Array<string>} topics - All of the trivia topics
+   * @property {string} _token - The client's login token
+   * @property {Object} apiKeys - All of the keys needed for third party APIs
+   * @property {Array<string>} ownerIds - All of the IDs of the client's owner
+   * @property {string} bugReportChannelId - The ID of the channel where bug reports are sent
+   * @property {string} feedbackChannelId - The ID of the channel where feedback is sent
+   * @property {string} serverLogChannelId - The ID of the channel where server join and leave logs are sent
+   * @property {Object} utils - Various utility functions
+   * @property {Object} errorTypes - All error types used for sending system error messages
+   */
+
+  /**
+   * Creates instance of Client
    * @param {Object} config
    * @param {ClientOptions} options
+   * @constructor
    */
   constructor(config, options = {}) {
 
     super(options);
 
     /**
-     * Logger
+     * The client's logger
      * @type {Object}
      */
     this.logger = require('./utils/logger.js');
 
     /**
-     * Database
+     * The client's database
      * @type {Object}
      */
     this.db = new Database(this, config.dbConfig[config.env]);
@@ -66,13 +85,14 @@ class Client extends Discord.Client {
     this.topics = [];
 
     /**
-     * Login token
+     * The login token
      * @type {string}
+     * @private
      */
     this._token = config.token;
 
     /**
-     * API keys
+     * All API keys
      * @type {Object}
      */
     this.apiKeys = config.apiKeys;
@@ -102,7 +122,7 @@ class Client extends Discord.Client {
     this.serverLogChannelId = config.serverLogChannelId;
 
     /**
-     * Utility functions
+     * Miscellaneous utility functions
      * @type {Object}
      */
     this.utils = require('./utils/utils.js');
@@ -123,7 +143,9 @@ class Client extends Discord.Client {
 
   /**
    * Loads all available commands
-   * @param {string} path
+   * @param {string} path - The path to the commands directory
+   * @returns {undefined}
+   * @private
    */
   _loadCommands(path) {
 
@@ -152,7 +174,7 @@ class Client extends Discord.Client {
         }
 
         if (command.name && !command.disabled) {
-          // Map command
+          // Map commands
           this.commands.set(command.name, command);
           // Map command aliases
           let aliases = '';
@@ -172,12 +194,14 @@ class Client extends Discord.Client {
       this.logger.info(`\n${table.toString()}`);
       this.logger.info(`Loaded ${this.commands.size} command(s)`);
     }
-    return this;
+    return this; // Return this for chaining
   }
 
   /**
    * Loads all available events
-   * @param {string} path
+   * @param {string} path - The path to the events directory
+   * @returns {undefined}
+   * @private
    */
   _loadEvents(path) {
 
@@ -215,13 +239,15 @@ class Client extends Discord.Client {
       this.logger.info(`\n${table.toString()}`);
       this.logger.info(`Loaded ${files.length} event(s)`);
     }
-    return this;
+    return this; // Return this for chaining
   }
 
   /**
- * Loads all available actions
- * @param {string} path
- */
+   * Loads all available actions
+   * @param {string} path - The path to the actions directory
+   * @returns {undefined}
+   * @private
+   */
   _loadActions(path) {
 
     this.logger.info('Loading actions...');
@@ -258,12 +284,14 @@ class Client extends Discord.Client {
       this.logger.info(`\n${table.toString()}`);
       this.logger.info(`Loaded ${files.length} action(s)`);
     }
-    return this;
+    return this; // Return this for chaining
   }
 
   /**
    * Loads all available trivia topics
-   * @param {string} path
+   * @param {string} path - The path to the trivia topic directory
+   * @returns {undefined}
+   * @private
    */
   _loadTriviaTopics(path) {
 
@@ -298,12 +326,13 @@ class Client extends Discord.Client {
       this.logger.info(`Loaded ${files.length} trivia topics(s)`);
     }
 
-    return this;
+    return this; // Return this for chaining
   }
 
   /**
    * Checks if user is the bot owner
-   * @param {User} user
+   * @param {User} user - The user that should be checked
+   * @returns {boolean}
    */
   isOwner(user) {
     if (this.ownerIds.includes(user.id)) return true;
@@ -312,7 +341,8 @@ class Client extends Discord.Client {
 
   /**
    * Checks if a bot response can be sent to the channel
-   * @param {Channel} channel
+   * @param {Channel} channel - The channel that should be checked
+   * @returns {boolean}
    */
   isAllowed(channel) {
     if ( // Check channel and permissions
@@ -325,11 +355,12 @@ class Client extends Discord.Client {
 
   /**
    * Creates and sends system failure embed
-   * @param {Guild} guild
-   * @param {string} error
-   * @param {string} errorType
-   * @param {string} errorMessage
-   * @param {string} stackTrace
+   * @param {Guild} guild - The guild that the message should be sent to
+   * @param {string} error - The feature that the error occurred in
+   * @param {string} errorType - The type of system error that should be sent
+   * @param {string} [errorMessage] - Description of the error
+   * @param {string} [stackTrace] - Stack trace of the error
+   * @returns {undefined}
    */
   sendSystemErrorMessage(guild, error, errorType, errorMessage = '', stackTrace = null) {
 

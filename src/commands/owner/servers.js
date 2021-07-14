@@ -2,7 +2,18 @@ const Command = require('../Command.js');
 const ReactionMenu = require('../ReactionMenu.js');
 const { MessageEmbed } = require('discord.js');
 
-module.exports = class Servers extends Command {
+/**
+ * Calypso's Servers command
+ * @extends Command
+ */
+class Servers extends Command {
+
+  /**
+   * Creates instance of Servers command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'servers',
@@ -13,23 +24,36 @@ module.exports = class Servers extends Command {
       ownerOnly: true
     });
   }
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
   run(message) {
 
-    const servers = message.client.guilds.cache.array().map(guild => {
+    const { client, guild, channel, member, author } = message;
+
+    // Create servers list
+    const servers = client.guilds.cache.array().map(guild => {
       return `\`${guild.id}\` - **${guild.name}** - \`${guild.members.cache.size}\` members`;
     });
 
     const embed = new MessageEmbed()
       .setTitle('Server List')
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
+      .setColor(guild.me.displayHexColor);
 
+    // Create ReactionMenu if list is greater than 10
     if (servers.length <= 10) {
       const range = (servers.length == 1) ? '[1]' : `[1 - ${servers.length}]`;
-      message.channel.send(embed.setTitle(`Server List ${range}`).setDescription(servers.join('\n')));
+      channel.send(embed.setTitle(`Server List ${range}`).setDescription(servers.join('\n')));
     } else {
-      new ReactionMenu(message.client, message.channel, message.member, embed, servers);
+      new ReactionMenu(client, channel, member, embed, servers);
     }
   }
-};
+}
+
+module.exports = Servers;

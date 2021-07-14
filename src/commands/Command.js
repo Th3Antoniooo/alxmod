@@ -4,23 +4,43 @@ const { fail, timer } = require('../utils/emojis.json');
 
 /**
  * Calypso's Command class
+ * @abstract
  */
 class Command {
 
   /**
-   * Create new command
+   * @property {Client} client - The client that the command belongs to
+   * @property {string} name - The name of the command
+   * @property {Array<string>} [aliases] - Alternative names for the command
+   * @property {string} [usage] - The way the command is supposed to be used
+   * @property {string} [description] - A description of the command
+   * @property {string} [type] - The category the command belongs to
+   * @property {int} [cooldown] - The number of seconds that must pass before the command can be used again
+   * @property {Array<string>} [clientPermissions] - List of permissions the client needs for the command
+   * @property {Array<string>} [userPermissions] - List of permissions the user needs to use the command
+   * @property {Array<string>} [examples] - Examples of how to use the command
+   * @property {boolean} [ownerOnly] - Whether or not the command can only be used by the bot owner
+   * @property {boolean} [disabled] - Whether or not the command is disabled
+   * @property {Map<User, int>} _cooldowns - Map of all active cooldowns
+   * @property {Object} errorTypes - All command error types used for sending error messages
+   */
+
+  /**
+   * Creates instance of Command
+   * @constructor
    * @param {Client} client
    * @param {Object} options
    */
   constructor(client, options) {
 
+    // Enforce abstract class
     if (this.constructor == Command) throw new Error('The Command abstract class cannot be instantiated');
 
     // Validate all options passed
     this.constructor._validateOptions(client, options);
 
     /**
-     * The client
+     * Client that owns this command
      * @type {Client}
      */
     this.client = client;
@@ -38,13 +58,13 @@ class Command {
     this.aliases = options.aliases || null;
 
     /**
-     * The arguments for the command
+     * Usage of the command
      * @type {string}
      */
     this.usage = options.usage || options.name;
 
     /**
-     * The description for the command
+     * Description of the command
      * @type {string}
      */
     this.description = options.description || '';
@@ -80,20 +100,20 @@ class Command {
     this.examples = options.examples || null;
 
     /**
-     * If command can only be used by owner
+     * If the command can only be used by the bot owner
      * @type {boolean}
      */
     this.ownerOnly = options.ownerOnly || false;
 
     /**
-     * If command is enabled
+     * If the command is enabled
      * @type {boolean}
      */
     this.disabled = options.disabled || false;
 
     /**
      * All active cooldowns
-     * @type {boolean}
+     * @type {Map<User, int>}
      * @private
      */
     this._cooldowns = new Map();
@@ -114,7 +134,10 @@ class Command {
   /**
    * Runs the command
    * @param {Message} message
-   * @param {string[]} args
+   * @param {Array<string>} args
+   * @throws {Error} Method must be implemented
+   * @returns {undefined}
+   * @abstract
    */
   // eslint-disable-next-line no-unused-vars
   run(message, args) {
@@ -123,8 +146,9 @@ class Command {
 
   /**
    * Gets member from mention
-   * @param {Message} message
-   * @param {string} mention
+   * @param {Message} message - The message that called this command
+   * @param {string} mention - The member mention
+   * @returns {Member}
    */
   getMemberFromMention(message, mention) {
     if (!mention) return;
@@ -136,8 +160,9 @@ class Command {
 
   /**
    * Gets role from mention
-   * @param {Message} message
-   * @param {string} mention
+   * @param {Message} message - The message that called this command
+   * @param {string} mention - The role mention
+   * @returns {Role}
    */
   getRoleFromMention(message, mention) {
     if (!mention) return;
@@ -149,8 +174,9 @@ class Command {
 
   /**
    * Gets text channel from mention
-   * @param {Message} message
-   * @param {string} mention
+   * @param {Message} message - The message that called this command
+   * @param {string} mention - The channel mention
+   * @returns {Channel}
    */
   getChannelFromMention(message, mention) {
     if (!mention) return;
@@ -162,8 +188,9 @@ class Command {
 
   /**
    * Helper method to check permissions
-   * @param {Message} message
-   * @param {boolean} ownerOverride
+   * @param {Message} message - The message that called this command
+   * @param {boolean} [ownerOverride] - Whether or not the owner can override any permission checks
+   * @returns {boolean}
    */
   checkPermissions(message, ownerOverride = true) {
     const clientPermission = this.checkClientPermissions(message);
@@ -173,9 +200,10 @@ class Command {
   }
 
   /**
-   * Checks the client permissions
-   * @param {Message} message
-   * @param {boolean} ownerOverride
+   * Checks if the client has the necessary permissions for this command
+   * @param {Message} message - The message that called this command
+   * @param {boolean} [ownerOverride] - Whether or not the owner can override any permission checks
+   * @returns {boolean}
    */
   checkClientPermissions(message) {
     const { guild, channel } = message;
@@ -190,10 +218,10 @@ class Command {
   }
 
   /**
-   * Checks the user permissions
-   * Code modified from: https://github.com/discordjs/Commando/blob/master/src/commands/base.js
-   * @param {Message} message
-   * @param {boolean} ownerOverride
+   * Checks if the user has permission to use this command
+   * @param {Message} message - The message that called this command
+   * @param {boolean} [ownerOverride] - Whether or not the owner can override any permission checks
+   * @returns {boolean}
    */
   checkUserPermissions(message, ownerOverride = true) {
     const { channel, member, author } = message;
@@ -218,7 +246,8 @@ class Command {
 
   /**
    * Gets or creates the cooldown for a current user
-   * @param {string} userId
+   * @param {string} userId - The user ID that has an active cooldown
+   * @returns {int|null}
    */
   getOrCreateCooldown(userId) {
     if (this.cooldown <= 0 || this.client.isOwner(userId)) return null;
@@ -240,7 +269,8 @@ class Command {
 
   /**
    * Creates and sends active cooldown embed
-   * @param {Message} message
+   * @param {Message} message - The message that called this command
+   * @returns {undefined}
    */
   sendCooldownMessage(message, cooldown) {
     const { guild, channel, author } = message;
@@ -256,13 +286,14 @@ class Command {
 
   /**
    * Creates and sends command failure embed
-   * @param {Message} message
-   * @param {string} errorType
-   * @param {string} errorMessage
-   * @param {string} stackTrace
+   * @param {Message} message - The message that called this command
+   * @param {string} [errorType] - The type of error that should be sent
+   * @param {string} [errorMessage] - Description of the error
+   * @param {string} [stackTrace] - Stack trace of the error
+   * @returns {undefined}
    */
   sendErrorMessage(message, errorType = this.errorTypes.INVALID_ARG, errorMessage = '', stackTrace = null) {
-    const { guild, channel, client, author } = message;
+    const { client, guild, channel, author } = message;
     const { INVALID_ARG, MISSING_ARG, MISSING_BOT_PERM } = this.errorTypes;
     const prefix = this.client.configs.get(guild.id).prefix;
     const user = (errorType === MISSING_BOT_PERM) ? client.user : author;
@@ -283,8 +314,9 @@ class Command {
   /**
    * Validates all options provided
    * Code modified from: https://github.com/discordjs/Commando/blob/master/src/commands/base.js
-   * @param {Client} client
-   * @param {Object} options
+   * @param {Client} client - The client this command belongs to
+   * @param {Object} options - All options for the command
+   * @returns {undefined}
    */
   static _validateOptions(client, options) {
 
@@ -298,11 +330,13 @@ class Command {
 
     // Aliases
     if (options.aliases) {
-      if (!Array.isArray(options.aliases) || options.aliases.some(ali => typeof ali !== 'string'))
+      if (!Array.isArray(options.aliases) || options.aliases.some(ali => typeof ali !== 'string')) {
         throw new TypeError('Command aliases is not an Array of strings');
+      }
 
-      if (options.aliases.some(ali => ali !== ali.toLowerCase()))
+      if (options.aliases.some(ali => ali !== ali.toLowerCase())) {
         throw new RangeError('Command aliases are not lowercase');
+      }
 
       for (const alias of options.aliases) {
         if (client.aliases.get(alias)) throw new Error('Command alias already exists');
@@ -313,22 +347,26 @@ class Command {
     if (options.usage && typeof options.usage !== 'string') throw new TypeError('Command usage is not a string');
 
     // Description
-    if (options.description && typeof options.description !== 'string')
+    if (options.description && typeof options.description !== 'string') {
       throw new TypeError('Command description is not a string');
+    }
 
     // Type
     if (options.type && typeof options.type !== 'string') throw new TypeError('Command type is not a string');
-    if (options.type && !Object.values(client.types).includes(options.type))
+    if (options.type && !Object.values(client.types).includes(options.type)) {
       throw new Error('Command type is not valid');
+    }
 
     // Cooldown
-    if (options.cooldown && typeof options.cooldown !== 'number')
+    if (options.cooldown && typeof options.cooldown !== 'number') {
       throw new TypeError('Command cooldown is not a number');
+    }
 
     // Client permissions
     if (options.clientPermissions) {
-      if (!Array.isArray(options.clientPermissions))
+      if (!Array.isArray(options.clientPermissions)) {
         throw new TypeError('Command clientPermissions is not an Array of permission key strings');
+      }
 
       for (const perm of options.clientPermissions) {
         if (!permissions[perm]) throw new RangeError(`Invalid command clientPermission: ${perm}`);
@@ -337,8 +375,9 @@ class Command {
 
     // User permissions
     if (options.userPermissions) {
-      if (!Array.isArray(options.userPermissions))
+      if (!Array.isArray(options.userPermissions)) {
         throw new TypeError('Command userPermissions is not an Array of permission key strings');
+      }
 
       for (const perm of options.userPermissions) {
         if (!permissions[perm]) throw new RangeError(`Invalid command userPermission: ${perm}`);
@@ -346,16 +385,19 @@ class Command {
     }
 
     // Examples
-    if (options.examples && !Array.isArray(options.examples))
+    if (options.examples && !Array.isArray(options.examples)) {
       throw new TypeError('Command examples is not an Array of permission key strings');
+    }
 
     // Owner only
-    if (options.ownerOnly && typeof options.ownerOnly !== 'boolean')
+    if (options.ownerOnly && typeof options.ownerOnly !== 'boolean') {
       throw new TypeError('Command ownerOnly is not a boolean');
+    }
 
     // Disabled
-    if (options.disabled && typeof options.disabled !== 'boolean')
+    if (options.disabled && typeof options.disabled !== 'boolean') {
       throw new TypeError('Command disabled is not a boolean');
+    }
   }
 }
 
