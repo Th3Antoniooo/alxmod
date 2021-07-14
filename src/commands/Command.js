@@ -15,7 +15,7 @@ class Command {
    * @property {string} [usage] - The way the command is supposed to be used
    * @property {string} [description] - A description of the command
    * @property {string} [type] - The category the command belongs to
-   * @property {int} [cooldown] - The number of seconds that must pass before the command can be used again
+   * @property {number} [cooldown] - The number of seconds that must pass before the command can be used again
    * @property {Array<string>} [clientPermissions] - List of permissions the client needs for the command
    * @property {Array<string>} [userPermissions] - List of permissions the user needs to use the command
    * @property {Array<string>} [examples] - Examples of how to use the command
@@ -77,7 +77,7 @@ class Command {
 
     /**
      * The cooldown duration, in seconds
-     * @type {int}
+     * @type {number}
      */
     this.cooldown = options.cooldown || 0;
 
@@ -312,7 +312,7 @@ class Command {
   }
 
   /**
-   * Validates all options provided
+   * Validates all options provided<br>
    * Code modified from: https://github.com/discordjs/Commando/blob/master/src/commands/base.js
    * @param {Client} client - The client this command belongs to
    * @param {Object} options - All options for the command

@@ -3,7 +3,18 @@ const { MessageEmbed } = require('discord.js');
 const moment = require('moment');
 const permissions = require('../../utils/permissions.json');
 
-module.exports = class RoleInfo extends Command {
+/**
+ * Calypso's RoleInfo command
+ * @extends Command
+ */
+class RoleInfo extends Command {
+
+  /**
+   * Creates instance of RoleInfo command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'roleinfo',
@@ -14,11 +25,27 @@ module.exports = class RoleInfo extends Command {
       examples: ['roleinfo @Member']
     });
   }
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
   run(message, args) {
 
-    const role = this.getRoleFromMention(message, args[0]) || message.guild.roles.cache.get(args[0]);
-    if (!role)
-      return this.sendErrorMessage(message, 0, 'Please mention a role or provide a valid role ID');
+    const { guild, channel, member, author } = message;
+
+    // Get role
+    const role = this.getRoleFromMention(message, args[0]) || guild.roles.cache.get(args[0]);
+
+    // If role doesn't exist
+    const { INVALID_ARG, MISSING_ARG } = this.errorTypes;
+    if (!role) {
+      return this.sendErrorMessage(
+        message, args[0] ? INVALID_ARG : MISSING_ARG, 'Please mention a role or provide a valid role ID'
+      );
+    }
 
     // Get role permissions
     const rolePermissions = role.permissions.toArray();
@@ -29,11 +56,11 @@ module.exports = class RoleInfo extends Command {
     }
 
     // Reverse role position
-    const position = `\`${message.guild.roles.cache.size - role.position}\`/\`${message.guild.roles.cache.size}\``;
+    const position = `\`${guild.roles.cache.size - role.position}\`/\`${guild.roles.cache.size}\``;
 
     const embed = new MessageEmbed()
       .setTitle('Role Information')
-      .setThumbnail(message.guild.iconURL({ dynamic: true }))
+      .setThumbnail(guild.iconURL({ dynamic: true }))
       .addField('Role', role, true)
       .addField('Role ID', `\`${role.id}\``, true)
       .addField('Position', position, true)
@@ -44,9 +71,11 @@ module.exports = class RoleInfo extends Command {
       .addField('Hoisted', `\`${role.hoist}\``, true)
       .addField('Created On', `\`${moment(role.createdAt).format('MMM DD YYYY')}\``, true)
       .addField('Permissions', `\`\`\`diff\n${finalPermissions.join('\n')}\`\`\``)
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(role.hexColor);
-    message.channel.send(embed);
+    channel.send(embed);
   }
-};
+}
+
+module.exports = RoleInfo;

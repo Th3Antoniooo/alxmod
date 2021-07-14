@@ -27,7 +27,7 @@
   },
   "scripts": {
     "lint": "./node_modules/.bin/eslint .; exit 0",
-    "jsdoc": "./node_modules/.bin/jsdoc -r -d docs src"
+    "jsdoc": "./node_modules/.bin/jsdoc -p -r -d docs src"
   },
   "repository": {
     "type": "git",

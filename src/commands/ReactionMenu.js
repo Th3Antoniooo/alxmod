@@ -3,7 +3,7 @@ const { MessageEmbed } = require('discord.js');
 /**
  * Calypso's Reaction Menu class
  */
-module.exports = class ReactionMenu {
+class ReactionMenu {
 
   /**
    * Create new ReactionMenu
@@ -12,9 +12,9 @@ module.exports = class ReactionMenu {
    * @param {GuildMember} member
    * @param {MessageEmbed} embed
    * @param {Array} arr
-   * @param {int} interval 
+   * @param {number} interval 
    * @param {Object} reactions
-   * @param {int} timeout 
+   * @param {number} timeout 
    */
   constructor(client, channel, member, embed, arr = null, interval = 10, reactions = {
     '⏪': this.first.bind(this), 
@@ -62,19 +62,19 @@ module.exports = class ReactionMenu {
 
     /**
      * The size of each array window
-     * @type {int}
+     * @type {number}
      */
     this.interval = interval;
 
     /**
      * The current array window start
-     * @type {int}
+     * @type {number}
      */
     this.current = 0;
 
     /**
      * The max length of the array
-     * @type {int}
+     * @type {number}
      */
     this.max = (this.arr) ? arr.length : null;
 
@@ -92,7 +92,7 @@ module.exports = class ReactionMenu {
 
     /**
      * The collector timeout
-     * @type {int}
+     * @type {number}
      */
     this.timeout = timeout;
 
@@ -207,4 +207,6 @@ module.exports = class ReactionMenu {
   stop() {
     this.collector.stop();
   }
-};
+}
+
+module.exports = ReactionMenu;

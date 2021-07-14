@@ -1,7 +1,18 @@
 const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 
-module.exports = class ServerIcon extends Command {
+/**
+ * Calypso's ServerIcon command
+ * @extends Command
+ */
+class ServerIcon extends Command {
+
+  /**
+   * Creates instance of ServerIcon command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'servericon',
@@ -11,13 +22,23 @@ module.exports = class ServerIcon extends Command {
       type: client.types.INFO
     });
   }
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
   run(message) {
+    const { guild, channel, member, author } = message;
     const embed = new MessageEmbed()
-      .setTitle(`${message.guild.name}'s Icon`)
-      .setImage(message.guild.iconURL({ dynamic: true, size: 512 }))
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+      .setTitle(`${guild.name}'s Icon`)
+      .setImage(guild.iconURL({ dynamic: true, size: 512 }))
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
-    message.channel.send(embed);
+      .setColor(guild.me.displayHexColor);
+    channel.send(embed);
   }
-};
+}
+
+module.exports = ServerIcon;

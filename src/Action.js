@@ -1,7 +1,8 @@
 /**
- * Calypso's Action class
- * Actions are stored in the 'actions' property, which already has existing discord.js actions
- * Calypso's actions are fundamentally different than the library actions
+ * Calypso's Action class<br>
+ * <br>
+ * Actions are stored in the 'actions' property, which already has existing discord.js actions<br>
+ * Calypso's actions are fundamentally different than the library actions<br>
  * This class is probably overkill and an overabstraction, but I like the pattern
  * @abstract
  */

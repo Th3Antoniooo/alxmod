@@ -6,7 +6,7 @@ const { oneLine } = require('common-tags');
  * Calypso's InviteMe command
  * @extends Command
  */
-module.exports = class InviteMe extends Command {
+class InviteMe extends Command {
 
   /**
    * Creates instance of InviteMe command
@@ -50,4 +50,6 @@ module.exports = class InviteMe extends Command {
       .setColor(guild.me.displayHexColor);
     channel.send(embed);
   }
-};
+}
+
+module.exports = InviteMe;

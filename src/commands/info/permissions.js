@@ -3,7 +3,18 @@ const { MessageEmbed } = require('discord.js');
 const permissions = require('../../utils/permissions.json');
 const { oneLine } = require('common-tags');
 
-module.exports = class Permissions extends Command {
+/**
+ * Calypso's Permissions command
+ * @extends Command
+ */
+class Permissions extends Command {
+
+  /**
+   * Creates instance of Permissions command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'permissions',
@@ -17,9 +28,20 @@ module.exports = class Permissions extends Command {
       examples: ['permissions @Nettles']
     });
   }
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
   run(message, args) {
-    const member =  this.getMemberFromMention(message, args[0]) || 
-      message.guild.members.cache.get(args[0]) || 
+
+    const { guild, channel, author } = message;
+
+    // Get member
+    const member = this.getMemberFromMention(message, args[0]) ||
+      guild.members.cache.get(args[0]) ||
       message.member;
 
     // Get member permissions
@@ -34,9 +56,11 @@ module.exports = class Permissions extends Command {
       .setTitle(`${member.displayName}'s Permissions`)
       .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
       .setDescription(`\`\`\`diff\n${finalPermissions.join('\n')}\`\`\``)
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(member.displayHexColor);
-    message.channel.send(embed);
+    channel.send(embed);
   }
-};
+}
+
+module.exports = Permissions;

@@ -15,7 +15,7 @@ const { fail } = require('./utils/emojis.json');
 class Client extends Discord.Client {
 
   /**
-   * @property {Object} logger - The logger for the client
+   * @property {Logger} logger - The logger for the client
    * @property {Database} db - A wrapper around the Sequelize ORM
    * @property {ConfigCache<string, GuildConfig>} configs - A cache where all guild configs are kept
    * @property {Object} types - All of the command categories
@@ -44,7 +44,7 @@ class Client extends Discord.Client {
 
     /**
      * The client's logger
-     * @type {Object}
+     * @type {Logger}
      */
     this.logger = require('./utils/logger.js');
 

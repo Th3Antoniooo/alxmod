@@ -1,7 +1,18 @@
 const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 
-module.exports = class Prefix extends Command {
+/**
+ * Calypso's Prefix command
+ * @extends Command
+ */
+class Prefix extends Command {
+
+  /**
+   * Creates instance of Prefix command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'prefix',
@@ -11,16 +22,26 @@ module.exports = class Prefix extends Command {
       type: client.types.INFO
     });
   }
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
   run(message) {
-    const prefix = message.client.db.settings.selectPrefix.pluck().get(message.guild.id); // Get prefix
+    const { client, guild, channel, member, author } = message;
+    const prefix = client.configs.get(guild.id).prefix; // Get prefix
     const embed = new MessageEmbed()
       .setTitle('Calypso\'s Prefix')
       .setThumbnail('https://raw.githubusercontent.com/sabattle/CalypsoBot/develop/data/images/Calypso.png')
       .addField('Prefix', `\`${prefix}\``, true)
       .addField('Example', `\`${prefix}ping\``, true)
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
-    message.channel.send(embed);
+      .setColor(guild.me.displayHexColor);
+    channel.send(embed);
   }
-};
+}
+
+module.exports = Prefix;

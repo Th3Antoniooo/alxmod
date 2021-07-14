@@ -1,7 +1,8 @@
 const { Collection } = require('discord.js');
 
 /**
- * Calypso's ConfigCache class
+ * Calypso's ConfigCache class<br>
+ * <br>
  * A normal Collection with a helper method to update fields
  * @extends Collection
  */

@@ -9,10 +9,12 @@ class SendFarewellMessage extends Action {
     const { guild, user } = member;
     const farewellChannelId = this._client.configs.get(guild.id).farewellChannelId;
     const farewellChannel = guild.channels.cache.get(farewellChannelId);
+    if (!farewellChannel) return;
 
     // Send farewell message
     if (this._client.isAllowed(farewellChannel)) {
       let farewellMessage = this._client.configs.get(guild.id).farewellMessage;
+      if (!farewellMessage) return;
       farewellMessage = farewellMessage
         .replace(/`?\?member`?/g, member) // Member mention substitution
         .replace(/`?\?username`?/g, user.username) // Username substitution

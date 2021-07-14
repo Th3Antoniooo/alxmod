@@ -23,7 +23,7 @@ function removeElement(arr, value) {
 /**
  * Trims array down to specified size
  * @param {Array} arr
- * @param {int} maxLen
+ * @param {number} maxLen
  */
 function trimArray(arr, maxLen = 10) {
   if (arr.length > maxLen) {
@@ -37,7 +37,7 @@ function trimArray(arr, maxLen = 10) {
 /**
  * Trims joined array to specified size
  * @param {Array} arr
- * @param {int} maxLen
+ * @param {number} maxLen
  * @param {string} joinChar
  */
 function trimStringFromArray(arr, maxLen = 2048, joinChar = '\n') {
@@ -54,8 +54,8 @@ function trimStringFromArray(arr, maxLen = 2048, joinChar = '\n') {
 /**
  * Gets current array window range
  * @param {Array} arr
- * @param {int} current
- * @param {int} interval
+ * @param {number} current
+ * @param {number} interval
  */
 function getRange(arr, current, interval) {
   const max = (arr.length > current + interval) ? current + interval : arr.length;
@@ -66,7 +66,7 @@ function getRange(arr, current, interval) {
 
 /**
  * Gets the ordinal numeral of a number
- * @param {int} number
+ * @param {number} number
  */
 function getOrdinalNumeral(number) {
   number = number.toString();
