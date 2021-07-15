@@ -2,12 +2,14 @@ const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 const moment = require('moment');
 const emojis = require('../../utils/emojis.json');
+
 const statuses = {
   online: `${emojis.online} \`Online\``,
   idle: `${emojis.idle} \`AFK\``,
   offline: `${emojis.offline} \`Offline\``,
   dnd: `${emojis.dnd} \`Do Not Disturb\``
 };
+
 const flags = {
   DISCORD_EMPLOYEE: `${emojis.discord_employee} \`Discord Employee\``,
   DISCORD_PARTNER: `${emojis.discord_partner} \`Partnered Server Owner\``,
@@ -24,7 +26,18 @@ const flags = {
   VERIFIED_DEVELOPER: `${emojis.verified_developer} \`Early Verified Bot Developer\``
 };
 
-module.exports = class UserInfo extends Command {
+/**
+ * Calypso's UserInfo command
+ * @extends Command
+ */
+class UserInfo extends Command {
+
+  /**
+   * Creates instance of UserInfo command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'userinfo',
@@ -35,11 +48,25 @@ module.exports = class UserInfo extends Command {
       examples: ['userinfo @Nettles']
     });
   }
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
   async run(message, args) {
-    const member =  this.getMemberFromMention(message, args[0]) || 
-      message.guild.members.cache.get(args[0]) || 
+
+    const { client, guild, channel, author } = message;
+
+    // Get member
+    const member =  this.getMemberFromMention(message, args[0]) ||
+      guild.members.cache.get(args[0]) ||
       message.member;
+
     const userFlags = (await member.user.fetchFlags()).toArray();
+
+    // Get activities
     const activities = [];
     let customStatus;
     for (const activity of member.presence.activities.values()) {
@@ -62,12 +89,12 @@ module.exports = class UserInfo extends Command {
           break;
       }
     }
-    
+
     // Trim roles
-    let roles = message.client.utils.trimArray(member.roles.cache.array().filter(r => !r.name.startsWith('#')));
-    roles = message.client.utils.removeElement(roles, message.guild.roles.everyone)
+    let roles = client.utils.trimArray(member.roles.cache.array().filter(r => !r.name.startsWith('#')));
+    roles = client.utils.removeElement(roles, guild.roles.everyone)
       .sort((a, b) => b.position - a.position).join(' ');
-    
+
     const embed = new MessageEmbed()
       .setTitle(`${member.displayName}'s Information`)
       .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
@@ -81,12 +108,14 @@ module.exports = class UserInfo extends Command {
       .addField('Joined server on', `\`${moment(member.joinedAt).format('MMM DD YYYY')}\``, true)
       .addField('Joined Discord on', `\`${moment(member.user.createdAt).format('MMM DD YYYY')}\``, true)
       .addField('Roles', roles || '`None`')
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(member.displayHexColor);
     if (activities.length > 0) embed.setDescription(activities.join('\n'));
-    if (customStatus) embed.spliceFields(0, 0, { name: 'Custom Status', value: customStatus});
+    if (customStatus) embed.spliceFields(0, 0, { name: 'Custom Status', value: customStatus });
     if (userFlags.length > 0) embed.addField('Badges', userFlags.map(flag => flags[flag]).join('\n'));
-    message.channel.send(embed);
+    channel.send(embed);
   }
-};
+}
+
+module.exports = UserInfo;

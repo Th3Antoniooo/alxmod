@@ -2,7 +2,18 @@ const Command = require('../Command.js');
 const ReactionMenu = require('../ReactionMenu.js');
 const { MessageEmbed } = require('discord.js');
 
-module.exports = class Admins extends Command {
+/**
+ * Calypso's Admins command
+ * @extends Command
+ */
+class Admins extends Command {
+
+  /**
+   * Creates instance of Admins command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'admins',
@@ -12,30 +23,39 @@ module.exports = class Admins extends Command {
       clientPermissions: ['SEND_MESSAGES', 'EMBED_LINKS', 'ADD_REACTIONS']
     });
   }
-  run(message) {
-    
-    // Get admin role
-    const adminRoleId = message.client.db.settings.selectAdminRoleId.pluck().get(message.guild.id);
-    const adminRole = message.guild.roles.cache.get(adminRoleId) || '`None`';
 
-    const admins = message.guild.members.cache.filter(m => {
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
+  run(message) {
+
+    const { client, guild, channel, member, author } = message;
+
+    // Get admin role
+    const adminRoleId = client.configs.get(guild.id).adminRoleId;
+    const adminRole = guild.roles.cache.get(adminRoleId) || '`None`';
+
+    const admins = guild.members.cache.filter(m => {
       if (m.roles.cache.find(r => r === adminRole)) return true;
     }).sort((a, b) => (a.joinedAt > b.joinedAt) ? 1 : -1).array();
 
     const embed = new MessageEmbed()
       .setTitle(`Admin List [${admins.length}]`)
-      .setThumbnail(message.guild.iconURL({ dynamic: true }))
+      .setThumbnail(guild.iconURL({ dynamic: true }))
       .addField('Admin Role', adminRole)
-      .addField('Admin Count', `**${admins.length}** out of **${message.guild.members.cache.size}** members`)
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+      .addField('Admin Count', `**${admins.length}** out of **${guild.members.cache.size}** members`)
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
+      .setColor(guild.me.displayHexColor);
 
     const interval = 25;
-    if (admins.length === 0) message.channel.send(embed.setDescription('No admins found.'));
+    if (admins.length === 0) channel.send(embed.setDescription('No admins found.'));
     else if (admins.length <= interval) {
       const range = (admins.length == 1) ? '[1]' : `[1 - ${admins.length}]`;
-      message.channel.send(embed
+      channel.send(embed
         .setTitle(`Admin List ${range}`)
         .setDescription(admins.join('\n'))
       );
@@ -45,13 +65,12 @@ module.exports = class Admins extends Command {
 
       embed
         .setTitle('Admin List')
-        .setThumbnail(message.guild.iconURL({ dynamic: true }))
-        .setFooter(
-          'Expires after two minutes.\n' + message.member.displayName, 
-          message.author.displayAvatarURL({ dynamic: true })
-        );
+        .setThumbnail(guild.iconURL({ dynamic: true }))
+        .setFooter('Expires after two minutes.\n' + member.displayName, author.displayAvatarURL({ dynamic: true }));
 
-      new ReactionMenu(message.client, message.channel, message.member, embed, admins, interval);
+      new ReactionMenu(client, channel, member, embed, admins, interval);
     }
   }
-};
+}
+
+module.exports = Admins;

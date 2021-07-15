@@ -1,7 +1,18 @@
 const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 
-module.exports = class Avatar extends Command {
+/**
+ * Calypso's Avatar command
+ * @extends Command
+ */
+class Avatar extends Command {
+
+  /**
+   * Creates instance of Avatar command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'avatar',
@@ -12,16 +23,31 @@ module.exports = class Avatar extends Command {
       examples: ['avatar @Nettles']
     });
   }
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
   run(message, args) {
-    const member =  this.getMemberFromMention(message, args[0]) || 
-      message.guild.members.cache.get(args[0]) || 
+
+    const { guild, channel, author } = message;
+
+    // Get member
+    const member =  this.getMemberFromMention(message, args[0]) ||
+      guild.members.cache.get(args[0]) ||
       message.member;
+
+    // Display avatar
     const embed = new MessageEmbed()
       .setTitle(`${member.displayName}'s Avatar`)
       .setImage(member.user.displayAvatarURL({ dynamic: true, size: 512 }))
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(message.member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(member.displayHexColor);
-    message.channel.send(embed);
+    channel.send(embed);
   }
-};
+}
+
+module.exports = Avatar;

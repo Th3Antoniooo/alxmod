@@ -2,7 +2,18 @@ const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 const { oneLine } = require('common-tags');
 
-module.exports = class GitHub extends Command {
+/**
+ * Calypso's GitHub command
+ * @extends Command
+ */
+class GitHub extends Command {
+
+  /**
+   * Creates instance of GitHub command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'github',
@@ -12,7 +23,15 @@ module.exports = class GitHub extends Command {
       type: client.types.INFO
     });
   }
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
   run(message) {
+    const { guild, channel, member, author } = message;
     const embed = new MessageEmbed()
       .setTitle('GitHub Link')
       .setThumbnail('https://raw.githubusercontent.com/sabattle/CalypsoBot/develop/data/images/Calypso.png')
@@ -24,9 +43,11 @@ module.exports = class GitHub extends Command {
         '**[Invite Me](https://discordapp.com/oauth2/authorize?client_id=416451977380364288&scope=bot&permissions=403008599) | ' +
         '[Support Server](https://discord.gg/pnYVdut)**'
       )
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
-    message.channel.send(embed);
+      .setColor(guild.me.displayHexColor);
+    channel.send(embed);
   }
-};
+}
+
+module.exports = GitHub;

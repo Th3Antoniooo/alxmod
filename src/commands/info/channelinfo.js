@@ -2,7 +2,8 @@ const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 const moment = require('moment');
 const { voice } = require('../../utils/emojis.json');
-const { oneLine, stripIndent } = require('common-tags');
+const { oneLine } = require('common-tags');
+
 const channelTypes = {
   dm: 'DM',
   text: 'Text',
@@ -12,7 +13,18 @@ const channelTypes = {
   store: 'Store'
 };
 
-module.exports = class ChannelInfo extends Command {
+/**
+ * Calypso's ChannelInfo command
+ * @extends Command
+ */
+class ChannelInfo extends Command {
+
+  /**
+   * Creates instance of ChannelInfo command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'channelinfo',
@@ -26,43 +38,65 @@ module.exports = class ChannelInfo extends Command {
       examples: ['channelinfo #general']
     });
   }
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
   run(message, args) {
-    let channel = this.getChannelFromMention(message, args[0]) || message.guild.channels.cache.get(args[0]);
+
+    const { client, guild, member, author } = message;
+
+    // Get channel
+    let channel = this.getChannelFromMention(message, args[0]) || guild.channels.cache.get(args[0]);
     if (channel) {
       args.shift();
     } else channel = message.channel;
+
     const embed = new MessageEmbed()
       .setTitle('Channel Information')
-      .setThumbnail(message.guild.iconURL({ dynamic: true }))
+      .setThumbnail(guild.iconURL({ dynamic: true }))
       .addField('Channel', channel, true)
       .addField('ID', `\`${channel.id}\``, true)
       .addField('Type', `\`${channelTypes[channel.type]}\``, true)
       .addField('Members', `\`${channel.members.size}\``, true)
       .addField('Bots', `\`${channel.members.array().filter(b => b.user.bot).length}\``, true)
       .addField('Created On', `\`${moment(channel.createdAt).format('MMM DD YYYY')}\``, true)
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
+      .setColor(guild.me.displayHexColor);
+
+    // Text channel
     if (channel.type === 'text') {
       embed // Text embed
         .spliceFields(3, 0, { name: 'Rate Limit', value: `\`${channel.rateLimitPerUser}\``, inline: true })
         .spliceFields(6, 0, { name: 'NSFW', value: `\`${channel.nsfw}\``, inline: true });
+    // News channel
     } else if (channel.type === 'news') {
       embed // News embed
         .spliceFields(6, 0, { name: 'NSFW', value: `\`${channel.nsfw}\``, inline: true });
+    // Voice channel
     } else if (channel.type === 'voice') {
       embed // Voice embed
         .spliceFields(0, 1, { name: 'Channel', value: `${voice} ${channel.name}`, inline: true })
         .spliceFields(5, 0, { name: 'User Limit', value: `\`${channel.userLimit}\``, inline: true })
         .spliceFields(6, 0, { name: 'Full', value: `\`${channel.full}\``, inline: true });
+      // Count members in channel
       const members = channel.members.array();
-      if (members.length > 0) 
-        embed.addField('Members Joined', message.client.utils.trimArray(channel.members.array()).join(' '));
-    } else return this.sendErrorMessage(message, 0, stripIndent`
-      Please enter mention a valid text or announcement channel` +
-      ' or provide a valid text, announcement, or voice channel ID'
-    );
+      if (members.length > 0) {
+        embed.addField('Members Joined', client.utils.trimArray(channel.members.array()).join(' '));
+      }
+    } else {
+      return this.sendErrorMessage(message, 0, oneLine`
+        Please enter mention a valid text or announcement channel
+        or provide a valid text, announcement, or voice channel ID
+      `);
+    }
     if (channel.topic) embed.addField('Topic', channel.topic);
     message.channel.send(embed);
   }
-};
+}
+
+module.exports = ChannelInfo;
