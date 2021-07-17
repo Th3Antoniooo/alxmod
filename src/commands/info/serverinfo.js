@@ -71,9 +71,9 @@ class ServerInfo extends Command {
     const members = guild.members.cache.array();
     const memberCount = members.length;
     const online = members.filter((m) => m.presence.status === 'online').length;
-    const offline =  members.filter((m) => m.presence.status === 'offline').length;
-    const dnd =  members.filter((m) => m.presence.status === 'dnd').length;
-    const afk =  members.filter((m) => m.presence.status === 'idle').length;
+    const offline = members.filter((m) => m.presence.status === 'offline').length;
+    const dnd = members.filter((m) => m.presence.status === 'dnd').length;
+    const afk = members.filter((m) => m.presence.status === 'idle').length;
     const bots = members.filter(b => b.user.bot).length;
 
     // Get channel stats

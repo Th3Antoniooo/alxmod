@@ -51,7 +51,7 @@ class Servers extends Command {
       const range = (servers.length == 1) ? '[1]' : `[1 - ${servers.length}]`;
       channel.send(embed.setTitle(`Server List ${range}`).setDescription(servers.join('\n')));
     } else {
-      new ReactionMenu(client, channel, member, embed, servers);
+      new ReactionMenu(client, { channel, member, embed, arr: servers });
     }
   }
 }

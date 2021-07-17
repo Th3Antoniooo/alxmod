@@ -68,7 +68,7 @@ class Admins extends Command {
         .setThumbnail(guild.iconURL({ dynamic: true }))
         .setFooter('Expires after two minutes.\n' + member.displayName, author.displayAvatarURL({ dynamic: true }));
 
-      new ReactionMenu(client, channel, member, embed, admins, interval);
+      new ReactionMenu(client, { channel, member, embed, arr: admins, interval });
     }
   }
 }

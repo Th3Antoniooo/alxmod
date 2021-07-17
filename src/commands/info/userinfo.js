@@ -60,7 +60,7 @@ class UserInfo extends Command {
     const { client, guild, channel, author } = message;
 
     // Get member
-    const member =  this.getMemberFromMention(message, args[0]) ||
+    const member = this.getMemberFromMention(message, args[0]) ||
       guild.members.cache.get(args[0]) ||
       message.member;
 

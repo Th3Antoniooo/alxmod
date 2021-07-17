@@ -68,7 +68,7 @@ class Mods extends Command {
         .setThumbnail(guild.iconURL({ dynamic: true }))
         .setFooter('Expires after two minutes.\n' + member.displayName, author.displayAvatarURL({ dynamic: true }));
 
-      new ReactionMenu(client, channel, member, embed, mods, interval);
+      new ReactionMenu(client, { channel, member, embed, arr: mods, interval });
     }
   }
 }

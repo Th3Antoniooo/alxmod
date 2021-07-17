@@ -38,9 +38,9 @@ class Members extends Command {
     // Count members by status
     const members = guild.members.cache.array();
     const online = members.filter((m) => m.presence.status === 'online').length;
-    const offline =  members.filter((m) => m.presence.status === 'offline').length;
-    const dnd =  members.filter((m) => m.presence.status === 'dnd').length;
-    const afk =  members.filter((m) => m.presence.status === 'idle').length;
+    const offline = members.filter((m) => m.presence.status === 'offline').length;
+    const dnd = members.filter((m) => m.presence.status === 'dnd').length;
+    const afk = members.filter((m) => m.presence.status === 'idle').length;
 
     const embed = new MessageEmbed()
       .setTitle(`Member Status [${guild.members.cache.size}]`)

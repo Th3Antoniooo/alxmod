@@ -65,7 +65,7 @@ class Emojis extends Command {
           author.displayAvatarURL({ dynamic: true })
         );
 
-      new ReactionMenu(client, channel, member, embed, emojis, interval);
+      new ReactionMenu(client, { channel, member, embed, arr: emojis, interval });
     }
   }
 }

@@ -148,7 +148,7 @@ class Command {
    * Gets member from mention
    * @param {Message} message - The message that called this command
    * @param {string} mention - The member mention
-   * @returns {Member}
+   * @returns {GuildMember}
    */
   getMemberFromMention(message, mention) {
     if (!mention) return;

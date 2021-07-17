@@ -43,6 +43,7 @@
     "curly": ["error", "multi-line"],
     "eol-last": ["error", "always"],
     "no-multiple-empty-lines": ["error", { "max": 1, "maxEOF": 0 }],
+    "no-multi-spaces": ["error", { "ignoreEOLComments": false }],
     "require-await": 2,
     "no-console": 0
   },

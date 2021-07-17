@@ -1,108 +1,128 @@
 const { MessageEmbed } = require('discord.js');
 
 /**
- * Calypso's Reaction Menu class
+ * Calypso's ReactionMenu class
  */
 class ReactionMenu {
 
   /**
-   * Create new ReactionMenu
-   * @param {Client} client
-   * @param {TextChannel} channel
-   * @param {GuildMember} member
-   * @param {MessageEmbed} embed
-   * @param {Array} arr
-   * @param {number} interval 
-   * @param {Object} reactions
-   * @param {number} timeout 
+   * @property {Client} _client - The client that the reaction menu belongs to
+   * @property {TextChannel} _channel - The text channel that the reaction menu belongs to
+   * @property {string} _memberId - The ID of the member who created the reaction menu
+   * @property {MessageEmbed} embed - The embed used for the reaction menu
+   * @property {Object} _json - The embed converted to JSON
+   * @property {Array} arr - Array to be iterated over in windows
+   * @property {number} interval - The iteration window size
+   * @property {number} _current - Current index of the window start
+   * @property {number} max - The max size of the array
+   * @property {Object} reactions - Reaction emojis mapped to functions
+   * @property {Array<string>} _emojis - The ID of each emoji used
+   * @property {number} _timeout - How long the reaction menu will exist, in milliseconds
+   * @property {Message} message - The message containing the reaction menu
    */
-  constructor(client, channel, member, embed, arr = null, interval = 10, reactions = {
-    '⏪': this.first.bind(this), 
-    '◀️': this.previous.bind(this), 
-    '▶️': this.next.bind(this), 
-    '⏩': this.last.bind(this), 
-    '⏹️': this.stop.bind(this)
-  }, timeout = 120000) {
+
+  /**
+   * Creates instance of ReactionMenu
+   * @constructor
+   * @param {Client} client - The client that owns this reaction menu
+   * @param {Object} options - All of the possible options for the reaction menu
+   */
+  constructor(client, options) {
 
     /**
-     * The Calypso Client
+     * Client that owns this reaction menu
      * @type {Client}
+     * @private
      */
-    this.client = client;
+    this._client = client;
 
     /**
-     * The text channel
+     * The text channel the reaction menu belongs to
      * @type {TextChannel}
+     * @private
      */
-    this.channel = channel;
+    this._channel = options.channel;
 
     /**
      * The member ID snowflake
      * @type {string}
+     * @private
      */
-    this.memberId = member.id;
+    this._memberId = options.member.id;
 
     /**
-     * The embed passed to the Reaction Menu
+     * The embed passed to the reaction menu
      * @type {MessageEmbed}
      */
-    this.embed = embed;
+    this.embed = options.embed;
 
     /**
      * JSON from the embed
      * @type {Object}
+     * @private
      */
-    this.json = this.embed.toJSON();
+    this._json = this.embed.toJSON();
 
     /**
      * The array to be iterated over
      * @type {Array}
      */
-    this.arr = arr;
+    this.arr = options.arr || null;
 
     /**
-     * The size of each array window
+     * Size of each array window
      * @type {number}
      */
-    this.interval = interval;
+    this.interval = options.interval || 10;
 
     /**
      * The current array window start
      * @type {number}
+     * @private
      */
-    this.current = 0;
+    this._current = 0;
 
     /**
-     * The max length of the array
+     * Max length of the array
      * @type {number}
      */
-    this.max = (this.arr) ? arr.length : null;
+    this.max = (this.arr) ? this.arr.length : null;
 
     /**
-     * The reactions for menu
+     * Reactions for menu, mapped to functions
      * @type {Object}
      */
-    this.reactions = reactions;
+    this._reactions = options.reactions || {
+      '⏪': this.first.bind(this),
+      '◀️': this.previous.bind(this),
+      '▶️': this.next.bind(this),
+      '⏩': this.last.bind(this),
+      '⏹️': this.stop.bind(this)
+    };
 
     /**
      * The emojis used as keys
      * @type {Array<string>}
+     * @private
      */
-    this.emojis = Object.keys(this.reactions);
+    this._emojis = Object.keys(this._reactions);
 
     /**
      * The collector timeout
      * @type {number}
+     * @private
      */
-    this.timeout = timeout;
+    this._timeout = options.timeout || 120000;
 
-    const first = new MessageEmbed(this.json);
-    const description = (this.arr) ? this.arr.slice(this.current, this.interval) : null;
-    if (description) first
-      .setTitle(this.embed.title + ' ' + this.client.utils.getRange(this.arr, this.current, this.interval))
-      .setDescription(description);
+    const first = new MessageEmbed(this._json);
+    const description = (this.arr) ? this.arr.slice(this._current, this.interval) : null;
+    if (description) {
+      first
+        .setTitle(this.embed.title + ' ' + this._client.utils.getRange(this.arr, this._current, this.interval))
+        .setDescription(description);
+    }
 
-    this.channel.send(first).then(message => {
+    this._channel.send(first).then(message => {
 
       /**
        * The menu message
@@ -110,42 +130,46 @@ class ReactionMenu {
      */
       this.message = message;
 
-      this.addReactions();
-      this.createCollector();
+      this._addReactions();
+      this._createCollector();
     });
   }
 
   /**
    * Adds reactions to the message
+   * @returns {undefined}
    */
-  async addReactions() {
-    for (const emoji of this.emojis) {
-      await this.message.react(emoji);
+  async _addReactions() {
+    const { _emojis, message } = this;
+    for (const emoji of _emojis) {
+      await message.react(emoji);
     }
   }
 
   /**
    * Creates a reaction collector
+   * @returns {undefined}
    */
-  createCollector() {
-    
+  _createCollector() {
+
     // Create collector
-    const collector = this.message.createReactionCollector((reaction, user) => {
-      return (this.emojis.includes(reaction.emoji.name) || this.emojis.includes(reaction.emoji.id)) &&
-        user.id == this.memberId;
-    }, { time: this.timeout });
-    
+    let { _memberId, _reactions, _emojis, _timeout, message } = this;
+    const collector = message.createReactionCollector((reaction, user) => {
+      return (_emojis.includes(reaction.emoji.name) || _emojis.includes(reaction.emoji.id)) &&
+        user.id == _memberId;
+    }, { time: _timeout });
+
     // On collect
     collector.on('collect', async reaction => {
-      let newPage =  this.reactions[reaction.emoji.name] || this.reactions[reaction.emoji.id];
+      let newPage = _reactions[reaction.emoji.name] || _reactions[reaction.emoji.id];
       if (typeof newPage === 'function') newPage = newPage();
-      if (newPage) await this.message.edit(newPage);
-      await reaction.users.remove(this.memberId);
-    }); 
+      if (newPage) await message.edit(newPage);
+      await reaction.users.remove(_memberId);
+    });
 
     // On end
     collector.on('end', () => {
-      this.message.reactions.removeAll();
+      message.reactions.removeAll();
     });
 
     this.collector = collector;
@@ -153,56 +177,65 @@ class ReactionMenu {
 
   /**
    * Skips to the first array interval
+   * @returns {undefined}
    */
   first() {
-    if (this.current === 0) return;
-    this.current = 0;
-    return new MessageEmbed(this.json)
-      .setTitle(this.embed.title + ' ' + this.client.utils.getRange(this.arr, this.current, this.interval))
-      .setDescription(this.arr.slice(this.current, this.current + this.interval));
+    let { _client, embed, _json, arr, interval } = this;
+    if (this._current === 0) return;
+    this._current = 0;
+    return new MessageEmbed(_json)
+      .setTitle(embed.title + ' ' + _client.utils.getRange(arr, this._current, interval))
+      .setDescription(arr.slice(this._current, this._current + interval));
   }
 
   /**
    * Goes back an array interval
+   * @returns {undefined}
    */
   previous() {
-    if (this.current === 0) return;
-    this.current -= this.interval;
-    if (this.current < 0) this.current = 0;
-    return new MessageEmbed(this.json)
-      .setTitle(this.embed.title + ' ' + this.client.utils.getRange(this.arr, this.current, this.interval))
-      .setDescription(this.arr.slice(this.current, this.current + this.interval));
+    let { _client, embed, _json, arr, interval } = this;
+    if (this._current === 0) return;
+    this._current -= interval;
+    if (this._current < 0) this._current = 0;
+    return new MessageEmbed(_json)
+      .setTitle(embed.title + ' ' + _client.utils.getRange(arr, this._current, interval))
+      .setDescription(arr.slice(this._current, this._current + interval));
   }
 
   /**
    * Goes to the next array interval
+   * @returns {undefined}
    */
   next() {
-    const cap = this.max - (this.max % this.interval);
-    if (this.current === cap || this.current + this.interval === this.max) return;
-    this.current += this.interval;
-    if (this.current >= this.max) this.current = cap;
-    const max = (this.current + this.interval >= this.max) ? this.max : this.current + this.interval;
-    return new MessageEmbed(this.json)
-      .setTitle(this.embed.title + ' ' + this.client.utils.getRange(this.arr, this.current, this.interval))
-      .setDescription(this.arr.slice(this.current, max));
+    let { _client, embed, _json, arr, interval, max } = this;
+    const cap = max - (max % interval);
+    if (this._current === cap || this._current + interval === max) return;
+    this._current += interval;
+    if (this._current >= max) this._current = cap;
+    max = (this._current + interval >= max) ? max : this._current + interval;
+    return new MessageEmbed(_json)
+      .setTitle(embed.title + ' ' + _client.utils.getRange(arr, this._current, interval))
+      .setDescription(arr.slice(this._current, max));
   }
 
   /**
    * Goes to the last array interval
+   * @returns {undefined}
    */
   last() {
-    const cap = this.max - (this.max % this.interval);
-    if (this.current === cap || this.current + this.interval === this.max) return;
-    this.current = cap;
-    if (this.current === this.max) this.current -= this.interval;
-    return new MessageEmbed(this.json)
-      .setTitle(this.embed.title + ' ' + this.client.utils.getRange(this.arr, this.current, this.interval))
-      .setDescription(this.arr.slice(this.current, this.max));
+    let { _client, embed, _json, arr, interval, max } = this;
+    const cap = max - (max % interval);
+    if (this._current === cap || this._current + interval === max) return;
+    this._current = cap;
+    if (this._current === max) this._current -= interval;
+    return new MessageEmbed(_json)
+      .setTitle(embed.title + ' ' + _client.utils.getRange(arr, this._current, interval))
+      .setDescription(arr.slice(this._current, max));
   }
 
   /**
    * Stops the collector
+   * @returns {undefined}
    */
   stop() {
     this.collector.stop();

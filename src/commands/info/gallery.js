@@ -75,16 +75,13 @@ class Gallery extends Command {
     };
 
     // Create reaction menu
-    const menu = new ReactionMenu(
-      client,
+    const menu = new ReactionMenu(client, {
       channel,
       member,
       embed,
-      null,
-      null,
       reactions,
-      180000
-    );
+      timeout: 180000
+    });
 
     // Add a stop button
     menu.reactions['⏹️'] = menu.stop.bind(menu);
