@@ -14,7 +14,18 @@ const numberMap = {
   '9': ':nine:',
 };
 
-module.exports = class Emojify extends Command {
+/**
+ * Calypso's Emojify command
+ * @extends Command
+ */
+class Emojify extends Command {
+
+  /**
+   * Creates instance of Emojify command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'emojify',
@@ -25,26 +36,44 @@ module.exports = class Emojify extends Command {
       examples: ['emojify hello world']
     });
   }
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
   run(message, args) {
-    if (!args[0]) return this.sendErrorMessage(message, 0, 'Please provide a message to emojify');
-    let msg = message.content.slice(message.content.indexOf(args[0]), message.content.length);
+
+    const { guild, channel, member, author, content } = message;
+
+    // No message provided
+    if (!args[0]) {
+      return this.sendErrorMessage(message, this.errorTypes.MISSING_ARG, 'Please provide a message to emojify');
+    }
+
+    // Emojify message
+    let msg = content.slice(content.indexOf(args[0]), content.length);
     msg = msg.split('').map(c => {
       if (c === ' ') return c;
       else if (/[0-9]/.test(c)) return numberMap[c];
       else return (/[a-zA-Z]/.test(c)) ? ':regional_indicator_' + c.toLowerCase() + ':' : '';
     }).join('');
 
+    // Trim message
     if (msg.length > 2048) {
-      msg = msg.slice(0, msg.length - (msg.length - 2033)); 
+      msg = msg.slice(0, msg.length - (msg.length - 2033));
       msg = msg.slice(0, msg.lastIndexOf(':')) + '**...**';
     }
 
     const embed = new MessageEmbed()
       .setTitle('Emojify')
       .setDescription(msg)
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
-    message.channel.send(embed);
+      .setColor(guild.me.displayHexColor);
+    channel.send(embed);
   }
-};
+}
+
+module.exports = Emojify;

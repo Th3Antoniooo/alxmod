@@ -3,7 +3,18 @@ const { MessageEmbed } = require('discord.js');
 const fetch = require('node-fetch');
 const { oneLine } = require('common-tags');
 
-module.exports = class YoMomma extends Command {
+/**
+ * Calypso's YoMomma command
+ * @extends Command
+ */
+class YoMomma extends Command {
+
+  /**
+   * Creates instance of YoMomma command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'yomomma',
@@ -14,28 +25,46 @@ module.exports = class YoMomma extends Command {
         If no user is given, then the joke will be directed at you!
       `,
       type: client.types.FUN,
-      examples: ['yomomma @Nettles']
+      examples: ['yomomma @Nettles'],
+      cooldown: 5
     });
   }
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
   async run(message, args) {
-    const member =  this.getMemberFromMention(message, args[0]) || 
-      message.guild.members.cache.get(args[0]) || 
+
+    const { client, guild, channel, author } = message;
+
+    // Get member
+    const member = this.getMemberFromMention(message, args[0]) ||
+      guild.members.cache.get(args[0]) ||
       message.member;
+
+    // Fetch joke
     try {
       const res = await fetch('https://api.yomomma.info');
       let joke = (await res.json()).joke;
       joke = joke.charAt(0).toLowerCase() + joke.slice(1);
-      if (!joke.endsWith('!') && !joke.endsWith('.') && !joke.endsWith('"')) joke += '!';
+      if (!joke.endsWith('!') && !joke.endsWith('.') && !joke.endsWith('"')) joke += '!'; // Cleanup joke
       const embed = new MessageEmbed()
         .setTitle('🍼  Yo Momma  🍼')
         .setDescription(`${member}, ${joke}`)
-        .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+        .setFooter(message.member.displayName, author.displayAvatarURL({ dynamic: true }))
         .setTimestamp()
-        .setColor(message.guild.me.displayHexColor);
-      message.channel.send(embed);
+        .setColor(guild.me.displayHexColor);
+      channel.send(embed);
+
+    // Error during fetch
     } catch (err) {
-      message.client.logger.error(err.stack);
-      this.sendErrorMessage(message, 1, 'Please try again in a few seconds', err.message);
+      client.logger.error(err.stack);
+      this.sendErrorMessage(message, this.errorTypes.COMMAND_FAIL, 'Please try again in a few seconds', err.message);
     }
   }
-};
+}
+
+module.exports = YoMomma;

@@ -1,5 +1,6 @@
 const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
+
 const answers = [
   'It is certain.',
   'It is decidedly so.',
@@ -23,7 +24,18 @@ const answers = [
   'Very doubtful.'
 ];
 
-module.exports = class EightBall extends Command {
+/**
+ * Calypso's EightBall command
+ * @extends Command
+ */
+class EightBall extends Command {
+
+  /**
+   * Creates instance of EightBall command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: '8ball',
@@ -34,17 +46,31 @@ module.exports = class EightBall extends Command {
       examples: ['8ball Am I going to win the lottery?']
     });
   }
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
   run(message, args) {
+
+    const { guild, channel, member, author } = message;
+
     const question = args.join(' ');
-    if (!question)
+    if (!question) { // No question provided
       return this.sendErrorMessage(message, this.errorTypes.MISSING_ARG, 'Please provide a question to ask');
+    }
+
     const embed = new MessageEmbed()
       .setTitle('🎱  The Magic 8-Ball  🎱')
       .addField('Question', question)
       .addField('Answer', `${answers[Math.floor(Math.random() * answers.length)]}`)
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
-    message.channel.send(embed);
+      .setColor(guild.me.displayHexColor);
+    channel.send(embed);
   }
-};
+}
+
+module.exports = EightBall;
