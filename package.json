@@ -26,6 +26,8 @@
     "nodemon": "^2.0.4"
   },
   "scripts": {
+	"start": "./start.sh",
+	"dev": "nodemon app.js",
     "lint": "./node_modules/.bin/eslint .; exit 0",
     "jsdoc": "./node_modules/.bin/jsdoc -p -r -d docs src"
   },
