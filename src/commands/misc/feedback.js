@@ -2,7 +2,18 @@ const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 const { oneLine } = require('common-tags');
 
-module.exports = class Feedback extends Command {
+/**
+ * Calypso's Feedback command
+ * @extends Command
+ */
+class Feedback extends Command {
+
+  /**
+   * Creates instance of Feedback command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'feedback',
@@ -13,23 +24,40 @@ module.exports = class Feedback extends Command {
       examples: ['feedback We love Calypso!']
     });
   }
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
   run(message, args) {
-    const feedbackChannel = message.client.channels.cache.get(message.client.feedbackChannelId);
-    if (!feedbackChannel) 
-      return this.sendErrorMessage(message, 1, 'The feedbackChannelId property has not been set');
-    if (!args[0]) return this.sendErrorMessage(message, 0, 'Please provide a message to send');
-    let feedback = message.content.slice(message.content.indexOf(args[0]), message.content.length);
+
+    const { client, guild, channel, member, author, content } = message;
+    const { MISSING_ARG, COMMAND_FAIL } = this.errorTypes;
+
+    // Get feedback channel
+    const feedbackChannel = client.channels.cache.get(client.feedbackChannelId);
+    if (!feedbackChannel) { // Property not set
+      return this.sendErrorMessage(message, COMMAND_FAIL, 'The feedbackChannelId property has not been set');
+    }
+
+    // No feedback provided
+    if (!args[0]) return this.sendErrorMessage(message, MISSING_ARG, 'Please provide a message to send');
+
+    // Get feedback
+    let feedback = content.slice(content.indexOf(args[0]), content.length);
 
     // Send report
     const feedbackEmbed = new MessageEmbed()
       .setTitle('Feedback')
       .setThumbnail(feedbackChannel.guild.iconURL({ dynamic: true }))
       .setDescription(feedback)
-      .addField('User', message.member, true)
-      .addField('Server', message.guild.name, true)
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+      .addField('User', member, true)
+      .addField('Server', guild.name, true)
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
+      .setColor(guild.me.displayHexColor);
     feedbackChannel.send(feedbackEmbed);
 
     // Send response
@@ -40,12 +68,14 @@ module.exports = class Feedback extends Command {
       .setDescription(oneLine`
         Successfully sent feedback!
         Please join the [Calypso Support Server](https://discord.gg/pnYVdut) to further discuss your feedback.
-      `) 
-      .addField('Member', message.member, true)
+      `)
+      .addField('Member', member, true)
       .addField('Message', feedback)
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
-    message.channel.send(embed);
+      .setColor(guild.me.displayHexColor);
+    channel.send(embed);
   }
-};
+}
+
+module.exports = Feedback;

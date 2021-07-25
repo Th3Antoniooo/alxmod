@@ -2,7 +2,18 @@ const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 const { oneLine } = require('common-tags');
 
-module.exports = class ReportBug extends Command {
+/**
+ * Calypso's ReportBug command
+ * @extends Command
+ */
+class ReportBug extends Command {
+
+  /**
+   * Creates instance of ReportBug command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'reportbug',
@@ -16,23 +27,40 @@ module.exports = class ReportBug extends Command {
       examples: ['reportbug bot is botched']
     });
   }
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
   run(message, args) {
-    const reportChannel = message.client.channels.cache.get(message.client.bugReportChannelId);
-    if (!reportChannel)
-      return this.sendErrorMessage(message, 1, 'The bugReportChannelId property has not been set');
-    if (!args[0]) return this.sendErrorMessage(message, 0, 'Please provide a message to send');
-    let report = message.content.slice(message.content.indexOf(args[0]), message.content.length);
+
+    const { client, guild, channel, member, author, content } = message;
+    const { MISSING_ARG, COMMAND_FAIL } = this.errorTypes;
+
+    // Get bug report channel
+    const reportChannel = client.channels.cache.get(client.bugReportChannelId);
+    if (!reportChannel) {
+      return this.sendErrorMessage(message, COMMAND_FAIL, 'The bugReportChannelId property has not been set');
+    }
+
+    // No bug report provided
+    if (!args[0]) return this.sendErrorMessage(message, MISSING_ARG, 'Please provide a message to send');
+
+    // Get bug report
+    let report = content.slice(content.indexOf(args[0]), content.length);
 
     // Send report
     const reportEmbed = new MessageEmbed()
       .setTitle('Bug Report')
       .setThumbnail(reportChannel.guild.iconURL({ dynamic: true }))
-      .setDescription(report) 
-      .addField('User', message.member, true)
-      .addField('Server', message.guild.name, true)
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+      .setDescription(report)
+      .addField('User', member, true)
+      .addField('Server', guild.name, true)
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
+      .setColor(guild.me.displayHexColor);
     reportChannel.send(reportEmbed);
 
     // Send response
@@ -44,12 +72,14 @@ module.exports = class ReportBug extends Command {
         Successfully sent bug report!
         Please join the [Calypso Support Server](https://discord.gg/pnYVdut) to further discuss your issue.
         Additionally, feel free to submit an issue on [GitHub](https://github.com/sabattle/CalypsoBot/issues).
-      `) 
-      .addField('Member', message.member, true)
+      `)
+      .addField('Member', member, true)
       .addField('Message', report)
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
-    message.channel.send(embed);
+      .setColor(guild.me.displayHexColor);
+    channel.send(embed);
   }
-};
+}
+
+module.exports = ReportBug;

@@ -1,7 +1,18 @@
 const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 
-module.exports = class Nickname extends Command {
+/**
+ * Calypso's Nickname command
+ * @extends Command
+ */
+class Nickname extends Command {
+
+  /**
+   * Creates instance of Nickname command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'nickname',
@@ -14,36 +25,54 @@ module.exports = class Nickname extends Command {
       examples: ['nickname Billy Zane']
     });
   }
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
   async run(message, args) {
 
-    if (!args[0]) return this.sendErrorMessage(message, 0, 'Please provide a nickname');
-    const nickname = message.content.slice(message.content.indexOf(args[0]), message.content.length);
+    const { client, guild, channel, member, author, content } = message;
+    const { MISSING_ARG, INVALID_ARG, COMMAND_FAIL } = this.errorTypes;
 
+    // No nickname provided
+    if (!args[0]) return this.sendErrorMessage(message, MISSING_ARG, 'Please provide a nickname');
+
+    // Get nickname
+    const nickname = content.slice(content.indexOf(args[0]), content.length);
+
+    // Nickname too long
     if (nickname.length > 32) {
-      return this.sendErrorMessage(message, 0, 'Please ensure the nickname is no larger than 32 characters');
-    } else if (message.member === message.guild.owner) {
-      return this.sendErrorMessage(message, 1, 'Unable to change the nickname of server owner');
+      return this.sendErrorMessage(message, INVALID_ARG, 'Please ensure the nickname is no larger than 32 characters');
+    } else if (member === guild.owner) { // Can't change the nickname of the server owner
+      return this.sendErrorMessage(message, INVALID_ARG, 'Unable to change the nickname of server owner');
     } else {
+
       try {
 
         // Change nickname
-        const oldNickname = message.member.nickname || '`None`';
+        const oldNickname = member.nickname || '`None`';
         const nicknameStatus = `${oldNickname} ➔ ${nickname}`;
-        await message.member.setNickname(nickname);
+        await member.setNickname(nickname);
         const embed = new MessageEmbed()
           .setTitle('Change Nickname')
-          .setDescription(`${message.member}'s nickname was successfully updated.`)
-          .addField('Member', message.member, true)
+          .setDescription(`${member}'s nickname was successfully updated.`)
+          .addField('Member', member, true)
           .addField('Nickname', nicknameStatus, true)
-          .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+          .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
           .setTimestamp()
-          .setColor(message.guild.me.displayHexColor);
-        message.channel.send(embed);
+          .setColor(guild.me.displayHexColor);
+        channel.send(embed);
 
+      // Unable to change nickname
       } catch (err) {
-        message.client.logger.error(err.stack);
-        this.sendErrorMessage(message, 1, 'Please check the role hierarchy', err.message);
+        client.logger.error(err.stack);
+        this.sendErrorMessage(message, COMMAND_FAIL, 'Please check the role hierarchy', err.message);
       }
-    }  
+    }
   }
-};
+}
+
+module.exports = Nickname;
