@@ -6,11 +6,11 @@ const { fail } = require('../utils/emojis.json');
  */
 module.exports = async (client, guild) => {
 
-  client.logger.info(`${client.user.username} has left ${guild.name}`);
+  client.logger.info(`Calypso has left ${guild.name}`);
   const serverLogChannel = client.channels.cache.get(client.serverLogChannelId);
   if (serverLogChannel) {
     serverLogChannel.send(
-      new MessageEmbed().setDescription(`${client.user.username} has left **${guild.name}** ${fail}`)
+      new MessageEmbed().setDescription(`Calypso has left **${guild.name}** ${fail}`)
     );
   }
 

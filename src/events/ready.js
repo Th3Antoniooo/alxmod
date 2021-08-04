@@ -37,7 +37,7 @@ module.exports = async (client) => {
 
     const created = await AddGuild.run({ guild });
 
-    if (created) client.logger.info(`${client.user.username} joined ${guild.name} while offline`);
+    if (created) client.logger.info(`Calypso joined ${guild.name} while offline`);
 
     // Grab all member IDs
     const memberIds = (await GuildMember.findAll({ where: { guildId: guild.id }})).map(row => row.userId);
@@ -63,12 +63,12 @@ module.exports = async (client) => {
   const leftGuilds = dbGuilds.filter(g1 => !guilds.some(g2 => g1.id === g2.id));
   for (const guild of leftGuilds) {
     await RemoveGuild.run({ guild });
-    client.logger.info(`${client.user.username} left ${guild.name} while offline`);
+    client.logger.info(`Calypso left ${guild.name} while offline`);
   }
 
   // Update presence
   client.user.setPresence({ status: 'online' });
 
-  client.logger.info(`${client.user.username} is now online`);
-  client.logger.info(`${client.user.username} is running on ${client.guilds.cache.size} server(s)`);
+  client.logger.info('Calypso is now online');
+  client.logger.info(`Calypso is running on ${client.guilds.cache.size} server(s)`);
 };
