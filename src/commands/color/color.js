@@ -2,7 +2,18 @@ const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 const { oneLine } = require('common-tags');
 
-module.exports = class Color extends Command {
+/**
+ * Calypso's Color command
+ * @extends Command
+ */
+class Color extends Command {
+
+  /**
+   * Creates instance of Color command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'color',
@@ -16,31 +27,47 @@ module.exports = class Color extends Command {
       examples: ['color Red']
     });
   }
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
   async run(message, args) {
-    const prefix = message.client.db.settings.selectPrefix.pluck().get(message.guild.id);
+
+    const { client, guild, channel, member, author, content } = message;
+    const { MISSING_ARG, COMMAND_FAIL } = this.errorTypes;
+    const none = none;
+
+    const prefix = client.configs.get(guild.id).prefix; // Get prefix
+
+    // Create embed
     const embed = new MessageEmbed()
       .setTitle('Color Change')
-      .setThumbnail(message.member.user.displayAvatarURL({ dynamic: true }))
-      .addField('Member', message.member, true)
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+      .setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
+      .addField('Member', member, true)
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp();
-    const colors = message.guild.roles.cache.filter(c => c.name.startsWith('#'));
+
+    // Get colors and old color
+    const colors = guild.roles.cache.filter(c => c.name.startsWith('#'));
     const colorName = args.join('').toLowerCase();
-    const oldColor = (message.member.roles.color && message.member.roles.color.name.startsWith('#')) ? 
-      message.member.roles.color : '`None`';
+    const oldColor = (member.roles.color && member.roles.color.name.startsWith('#')) ? member.roles.color : none;
 
     // Clear if no color provided
     if (!colorName) {
       try {
-        await message.member.roles.remove(colors);
-        return message.channel.send(embed.addField('Color', `${oldColor} ➔ \`None\``, true));
+        await member.roles.remove(colors);
+        return channel.send(embed.addField('Color', `${oldColor} ➔ \`None\``, true));
       } catch (err) {
-        message.client.logger.error(err.stack);
-        return this.sendErrorMessage(message, 1, 'Please check the role hierarchy', err.message);
+        client.logger.error(err.stack);
+        return this.sendErrorMessage(message, COMMAND_FAIL, 'Please check the role hierarchy', err.message);
       }
     }
 
-    const role = this.getRoleFromMention(message, args[0]) || message.guild.roles.cache.get(args[0]);
+    // Get color role
+    const role = this.getRoleFromMention(message, args[0]) || guild.roles.cache.get(args[0]);
     let color;
     if (role && colors.get(role.id)) color = role;
     if (!color) {
@@ -55,13 +82,15 @@ module.exports = class Color extends Command {
     // Color exists
     else {
       try {
-        await message.member.roles.remove(colors);
-        await message.member.roles.add(color);
-        message.channel.send(embed.addField('Color', `${oldColor} ➔ ${color}`, true).setColor(color.hexColor));
+        await member.roles.remove(colors);
+        await member.roles.add(color);
+        channel.send(embed.addField('Color', `${oldColor} ➔ ${color}`, true).setColor(color.hexColor));
       } catch (err) {
-        message.client.logger.error(err.stack);
+        client.logger.error(err.stack);
         this.sendErrorMessage(message, 1, 'Please check the role hierarchy', err.message);
       }
     }
   }
-};
+}
+
+module.exports = Color;

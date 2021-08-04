@@ -1,7 +1,18 @@
 const Command = require('../Command.js');
 const { oneLine, stripIndent } = require('common-tags');
 
-module.exports = class Say extends Command {
+/**
+ * Calypso's Say command
+ * @extends Command
+ */
+class Say extends Command {
+
+  /**
+   * Creates instance of Say command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'say',
@@ -14,7 +25,16 @@ module.exports = class Say extends Command {
       examples: ['say #general hello world']
     });
   }
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
   run(message, args) {
+
+    // Get channel
     let channel = this.getChannelFromMention(message, args[0]) || message.guild.channels.cache.get(args[0]);
     if (channel) {
       args.shift();
@@ -44,4 +64,6 @@ module.exports = class Say extends Command {
     const msg = message.content.slice(message.content.indexOf(args[0]), message.content.length);
     channel.send(msg, { disableMentions: 'everyone' });
   } 
-};
+}
+
+module.exports = Say;
