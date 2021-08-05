@@ -25,7 +25,7 @@ module.exports = async (client) => {
   client.logger.info('Updating guilds...');
 
   // Snag models
-  const { Guild, GuildMember } = client.db.models;
+  const { Guild, GuildMember, ModOnlyChannel } = client.db.models;
 
   // Snag actions
   const { AddGuild, RemoveGuild, AddMember, RemoveMember } = client.actions;
@@ -55,6 +55,14 @@ module.exports = async (client) => {
         await AddMember.run({ member });
       }
     }
+
+    // Load all mod only channels
+    const modOnlyChannels = (await ModOnlyChannel.findAll({ where: { guildId: guild.id }})).map(row => row.channelId);
+    const channels = [];
+    for (const channel of guild.channels.cache.values()) {
+      if (modOnlyChannels.includes(channel.id)) channels.push(channel);
+    }
+    client.actions.UpdateModOnlyChannels.run({ guildId: guild.id, channels });
   }
 
   // Remove guilds left while offline

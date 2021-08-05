@@ -3,7 +3,18 @@ const { MessageEmbed } = require('discord.js');
 const { success } = require('../../utils/emojis.json');
 const { oneLine } = require('common-tags');
 
-module.exports = class SetSystemChannel extends Command {
+/**
+ * Calypso's SetSystemChannel command
+ * @extends Command
+ */
+class SetSystemChannel extends Command {
+
+  /**
+   * Creates instance of SetSystemChannel command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'setsystemchannel',
@@ -19,10 +30,16 @@ module.exports = class SetSystemChannel extends Command {
       examples: ['setsystemchannel #general']
     });
   }
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
   async run(message, args) {
 
-    const { client } = this;
-    const { guild } = message;
+    const { client, guild, channel, member, author } = message;
     const none = '`None`';
 
     const systemChannelId = client.configs.get(guild.id).systemChannelId;
@@ -51,9 +68,11 @@ module.exports = class SetSystemChannel extends Command {
       .setThumbnail(guild.iconURL({ dynamic: true }))
       .setDescription(`The \`system channel\` was successfully updated. ${success}`)
       .addField('System Channel', `${oldSystemChannel} ➔ ${systemChannel}`)
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
       .setColor(guild.me.displayHexColor);
-    message.channel.send(embed);
+    channel.send(embed);
   }
-};
+}
+
+module.exports = SetSystemChannel;

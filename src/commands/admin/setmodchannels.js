@@ -1,13 +1,24 @@
 const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 const { success } = require('../../utils/emojis.json');
-const { oneLine, stripIndent } = require('common-tags');
+const { oneLine } = require('common-tags');
 
-module.exports = class SetModChannels extends Command {
+/**
+ * Calypso's SetModChannels command
+ * @extends Command
+ */
+class SetModChannels extends Command {
+
+  /**
+   * Creates instance of SetModChannels command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'setmodchannels',
-      aliases: ['setmodcs', 'setmcs', 'smcs'],
+      aliases: ['setmc', 'smc'],
       usage: 'setmodchannels <channel mentions/IDs>',
       description: oneLine`
         Sets the moderator only text channels for your server.
@@ -20,42 +31,54 @@ module.exports = class SetModChannels extends Command {
       examples: ['setmodchannels #general #memes #off-topic']
     });
   }
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
   run(message, args) {
-    const { trimArray  } = message.client.utils;
-    const modChannelIds = message.client.db.settings.selectModChannelIds.pluck().get(message.guild.id);
-    let oldModChannels = [];
-    if (modChannelIds) {
-      for (const channel of modChannelIds.split(' ')) {
-        oldModChannels.push(message.guild.channels.cache.get(channel));
-      }
-      oldModChannels = trimArray(oldModChannels).join(' ');
-    }
-    if (oldModChannels.length === 0) oldModChannels = '`None`';
+
+    const { client, guild, channel, member, author } = message;
+    const none = '`None`';
+    const { trimArray } = client.utils;
+
     const embed = new MessageEmbed()
       .setTitle('Settings: `System`')
-      .setThumbnail(message.guild.iconURL({ dynamic: true }))
+      .setThumbnail(guild.iconURL({ dynamic: true }))
       .setDescription(`The \`mod channels\` were successfully updated. ${success}`)
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
+      .setColor(guild.me.displayHexColor);
 
-    // Clear if no args provided
-    if (args.length === 0) {
-      message.client.db.settings.updateModChannelIds.run(null, message.guild.id);
-      return message.channel.send(embed.addField('Mod Channels', `${oldModChannels} ➔ \`None\``));
-    }
-
+    // Get channels
     let channels = [];
     for (const arg of args) {
-      const channel = this.getChannelFromMention(message, arg) || message.guild.channels.cache.get(arg);
-      if (channel && channel.type === 'text' && channel.viewable) channels.push(channel);
-      else return this.sendErrorMessage(message, 0, stripIndent`
-        Please mention only accessible text channels or provide only valid text channel IDs
-      `);
+      const channel = this.getChannelFromMention(message, arg) || guild.channels.cache.get(arg);
+      if (client.isAllowed(channel)) channels.push(channel);
+      else {
+        return this.sendErrorMessage(
+          message,
+          this.errorTypes.INVALID_ARG,
+          'Please mention only accessible text channels or provide only valid text channel IDs'
+        );
+      }
     }
     channels = [...new Set(channels)];
-    const channelIds = channels.map(c => c.id).join(' '); // Only keep unique IDs
-    message.client.db.settings.updateModChannelIds.run(channelIds, message.guild.id);
-    message.channel.send(embed.addField('Mod Channels', `${oldModChannels} ➔ ${trimArray(channels).join(' ')}`));
+
+    // Get old channels
+    let oldChannels = client.configs.get(guild.id).modOnlyChannels;
+    if (oldChannels.length === 0) oldChannels = none;
+    else oldChannels = trimArray(oldChannels).join(' ');
+
+    // Update mod only channels
+    client.actions.UpdateModOnlyChannels.run({ guildId: guild.id, channels });
+
+    // Send result
+    const newChannels = channels.length == 0 ? none : trimArray(channels).join(' ');
+    channel.send(embed.addField('Mod Channels', `${oldChannels} ➔ ${newChannels}`));
   }
-};
+}
+
+module.exports = SetModChannels;

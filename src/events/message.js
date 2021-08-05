@@ -19,6 +19,17 @@ module.exports = (client, message) => {
     const cmd = args.shift().toLowerCase();
     let command = client.commands.get(cmd) || client.aliases.get(cmd); // If command not found, check aliases
 
+    const modOnlyChannels = client.configs.get(guild.id).modOnlyChannels; // Get mod only channels
+
+    // Check if channel is only usable by moderators
+    if (modOnlyChannels.includes(channel)) {
+      const { MOD } = client.types;
+      if (
+        command.type != MOD ||
+        (command.type == MOD && channel.permissionsFor(author).missing(command.userPermissions) != 0)
+      ) return; // Return early so Calypso doesn't respond
+    }
+
     if (command && command.checkPermissions(message)) {
       const cooldown = command.getOrCreateCooldown(author.id);
       if (cooldown) return command.sendCooldownMessage(message, cooldown);

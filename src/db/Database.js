@@ -62,7 +62,7 @@ class Database {
   _associate() {
 
     // Snag models
-    const { Guild, GuildConfig, GuildMember, User } = this.models;
+    const { Guild, GuildConfig, GuildMember, User, ModOnlyChannel } = this.models;
 
     // A guild has one configuration
     Guild.hasOne(GuildConfig, { foreignKey: 'id' });
@@ -75,6 +75,9 @@ class Database {
 
     // A guild member belongs to one user
     GuildMember.belongsTo(User, { foreignKey: 'userId', onDelete: 'cascade' });
+
+    // A mod only channel belongs to one guild config
+    ModOnlyChannel.belongsTo(GuildConfig, { foreignKey: 'guildId', onDelete: 'cascade' });
 
   }
 

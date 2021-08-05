@@ -1,5 +1,5 @@
 const Command = require('../Command.js');
-const { oneLine, stripIndent } = require('common-tags');
+const { oneLine } = require('common-tags');
 
 /**
  * Calypso's Say command
@@ -34,36 +34,46 @@ class Say extends Command {
 	 */
   run(message, args) {
 
+    const { client, guild, member, content } = message;
+    const { MISSING_ARG, INVALID_ARG } = this.errorTypes;
+
     // Get channel
-    let channel = this.getChannelFromMention(message, args[0]) || message.guild.channels.cache.get(args[0]);
+    let channel = this.getChannelFromMention(message, args[0]) || guild.channels.cache.get(args[0]);
     if (channel) {
       args.shift();
     } else channel = message.channel;
 
-    // Check type and viewable
-    if (channel.type != 'text' || !channel.viewable) return this.sendErrorMessage(message, 0, stripIndent`
-      Please mention an accessible text channel or provide a valid text channel ID
-    `);
+    // Check if Calypso has access to the channel
+    if (!channel.permissionsFor(guild.me).has(['SEND_MESSAGES'])) {
+      return this.sendErrorMessage(
+        message, INVALID_ARG, 'I do not have permission to send messages in the provided channel'
+      );
+    }
 
-    // Get mod channels
-    let modChannelIds = message.client.db.settings.selectModChannelIds.pluck().get(message.guild.id) || [];
-    if (typeof(modChannelIds) === 'string') modChannelIds = modChannelIds.split(' ');
-    if (modChannelIds.includes(channel.id)) return this.sendErrorMessage(message, 0, stripIndent`
-      Provided channel is moderator only, please mention an accessible text channel or provide a valid text channel ID
-    `);
+    // Check user permissions
+    if (!channel.permissionsFor(member).has(['SEND_MESSAGES'])) {
+      return this.sendErrorMessage(
+        message, INVALID_ARG, 'You do not have permission to send messages in the provided channel'
+      );
+    }
 
-    if (!args[0]) return this.sendErrorMessage(message, 0, 'Please provide a message for me to say');
+    // Check if channel is mod only
+    const modOnlyChannels = client.configs.get(guild.id).modOnlyChannels;
+    if (modOnlyChannels.includes(channel)) {
+      return this.sendErrorMessage(
+        message, INVALID_ARG, oneLine`
+          Provided channel is moderator only,
+          please mention an accessible text channel or provide a valid text channel ID
+      `);
+    }
 
-    // Check channel permissions
-    if (!channel.permissionsFor(message.guild.me).has(['SEND_MESSAGES']))
-      return this.sendErrorMessage(message, 0, 'I do not have permission to send messages in the provided channel');
+    // No message provided
+    if (!args[0]) return this.sendErrorMessage(message, MISSING_ARG, 'Please provide a message for me to say');
 
-    if (!channel.permissionsFor(message.member).has(['SEND_MESSAGES']))
-      return this.sendErrorMessage(message, 0, 'You do not have permission to send messages in the provided channel');
-
-    const msg = message.content.slice(message.content.indexOf(args[0]), message.content.length);
+    // Send message
+    const msg = content.slice(content.indexOf(args[0]), content.length);
     channel.send(msg, { disableMentions: 'everyone' });
-  } 
+  }
 }
 
 module.exports = Say;
