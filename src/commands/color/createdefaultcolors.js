@@ -4,7 +4,18 @@ const colors = require('../../utils/colors.json');
 const len = Object.keys(colors).length;
 const { oneLine } = require('common-tags');
 
-module.exports = class CreateDefaultColors extends Command {
+/**
+ * Calypso's CreateDefaultColors command
+ * @extends Command
+ */
+class CreateDefaultColors extends Command {
+
+  /**
+   * Creates instance of CreateDefaultColors command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'createdefaultcolors',
@@ -19,22 +30,32 @@ module.exports = class CreateDefaultColors extends Command {
       userPermissions: ['MANAGE_ROLES']
     });
   }
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
   async run(message) {
+
+    const { client, guild, channel, member, author } = message;
+    const none = '`None`';
 
     const embed = new MessageEmbed()
       .setTitle('Create Default Colors')
       .setDescription('Creating colors...')
-      .setColor(message.guild.me.displayHexColor);
-    const msg = await message.channel.send(embed);
+      .setColor(guild.me.displayHexColor);
+    const msg = await channel.send(embed);
 
     // Create default colors
     let position = 1;
     const colorList = [];
-    for (let [key, value] of Object.entries(colors)){
+    for (let [key, value] of Object.entries(colors)) {
       key = '#' + key;
-      if (!message.guild.roles.cache.find(r => r.name === key)) {
+      if (!guild.roles.cache.find(r => r.name === key)) {
         try {
-          const role = await message.guild.roles.create({
+          const role = await guild.roles.create({
             data: {
               name: key,
               color: value,
@@ -45,18 +66,21 @@ module.exports = class CreateDefaultColors extends Command {
           colorList.push(role);
           position++; // Increment position to create roles in order
         } catch (err) {
-          message.client.logger.error(err.message);
+          client.logger.error(err.message);
         }
-      } 
+      }
     }
+
     const fails = len - colorList.length;
     embed // Build embed
-      .setThumbnail(message.guild.iconURL({ dynamic: true }))
+      .setThumbnail(guild.iconURL({ dynamic: true }))
       .setDescription(`Created \`${len - fails}\` of  \`${len}\` default colors.`)
-      .addField('Colors Created', (colorList.length > 0) ? colorList.reverse().join(' ') : '`None`')
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+      .addField('Colors Created', (colorList.length > 0) ? colorList.reverse().join(' ') : none)
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
+      .setColor(guild.me.displayHexColor);
     msg.edit(embed);
   }
-};
+}
+
+module.exports = CreateDefaultColors;

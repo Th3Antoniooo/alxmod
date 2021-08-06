@@ -2,7 +2,18 @@ const Command = require('../Command.js');
 const ReactionMenu = require('../ReactionMenu.js');
 const { MessageEmbed } = require('discord.js');
 
-module.exports = class Colors extends Command {
+/**
+ * Calypso's Colors command
+ * @extends Command
+ */
+class Colors extends Command {
+
+  /**
+   * Creates instance of Colors command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'colors',
@@ -13,39 +24,50 @@ module.exports = class Colors extends Command {
       clientPermissions: ['SEND_MESSAGES', 'EMBED_LINKS', 'ADD_REACTIONS']
     });
   }
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
   run(message) {
-   
-    const colors = message.guild.roles.cache.filter(c => c.name.startsWith('#'))
+
+    const { client, guild, channel, member, author } = message;
+
+    // Get all colors and sort by position
+    const colors = guild.roles.cache.filter(c => c.name.startsWith('#'))
       .sort((a, b) => b.position - a.position).array();
-    
+
     const embed = new MessageEmbed()
       .setTitle(`Available Colors [${colors.size}]`)
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
+      .setColor(guild.me.displayHexColor);
 
-    const prefix = message.client.db.settings.selectPrefix.pluck().get(message.guild.id); // Get prefix
+    const prefix = client.configs.get(guild.id).prefix; // Get prefix
 
     const interval = 50;
-    if (colors.length === 0) message.channel.send(embed.setDescription('No colors found.'));
+    if (colors.length === 0) channel.send(embed.setDescription('No colors found.'));
     else if (colors.length <= interval) {
       const range = (colors.length == 1) ? '[1]' : `[1 - ${colors.length}]`;
-      message.channel.send(embed
+      channel.send(embed
         .setTitle(`Available Colors ${range}`)
         .setDescription(`${colors.join(' ')}\n\nType \`${prefix}color <color name>\` to choose one.`)
       );
-      
+
     // Reaction Menu
     } else {
 
       let n = 0;
-      const { getRange } = message.client.utils;
+      const { getRange } = client.utils;
+
       embed
         .setTitle('Available Colors ' + getRange(colors, n, interval))
-        .setThumbnail(message.guild.iconURL({ dynamic: true }))
+        .setThumbnail(guild.iconURL({ dynamic: true }))
         .setFooter(
-          'Expires after two minutes.\n' + message.member.displayName, 
-          message.author.displayAvatarURL({ dynamic: true })
+          'Expires after two minutes.\n' + member.displayName,
+          author.displayAvatarURL({ dynamic: true })
         )
         .setDescription(`
           ${colors.slice(n, n + interval).join(' ')}\n\nType \`${prefix}color <color name>\` to choose one.
@@ -80,9 +102,16 @@ module.exports = class Colors extends Command {
         '⏹️': null,
       };
 
-      const menu = new ReactionMenu(message.client, message.channel, message.member, embed, null, null, reactions);
-      
+      const menu = new ReactionMenu(client, {
+        channel,
+        member,
+        embed,
+        reactions
+      });
+
       menu.reactions['⏹️'] = menu.stop.bind(menu);
     }
   }
-};
+}
+
+module.exports = Colors;

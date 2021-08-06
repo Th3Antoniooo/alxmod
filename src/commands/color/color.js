@@ -36,9 +36,9 @@ class Color extends Command {
 	 */
   async run(message, args) {
 
-    const { client, guild, channel, member, author, content } = message;
-    const { MISSING_ARG, COMMAND_FAIL } = this.errorTypes;
-    const none = none;
+    const { client, guild, channel, member, author } = message;
+    const { INVALID_ARG, COMMAND_FAIL } = this.errorTypes;
+    const none = '`None`';
 
     const prefix = client.configs.get(guild.id).prefix; // Get prefix
 
@@ -59,10 +59,12 @@ class Color extends Command {
     if (!colorName) {
       try {
         await member.roles.remove(colors);
-        return channel.send(embed.addField('Color', `${oldColor} ➔ \`None\``, true));
+        return channel.send(embed.addField('Color', `${oldColor} ➔ ${none}`, true));
       } catch (err) {
         client.logger.error(err.stack);
-        return this.sendErrorMessage(message, COMMAND_FAIL, 'Please check the role hierarchy', err.message);
+        return this.sendErrorMessage(
+          message, COMMAND_FAIL, 'Unable to remove color role, please check the role hierarchy', err.message
+        );
       }
     }
 
@@ -72,22 +74,27 @@ class Color extends Command {
     if (role && colors.get(role.id)) color = role;
     if (!color) {
       color = colors.find(c => {
-        return colorName == c.name.slice(1).toLowerCase().replace(/\s/g, '') || 
+        return colorName == c.name.slice(1).toLowerCase().replace(/\s/g, '') ||
           colorName == c.name.toLowerCase().replace(/\s/g, '');
       });
     }
+
     // Color does not exist
-    if (!color)
-      return this.sendErrorMessage(message, 0, `Please provide a valid color, use ${prefix}colors for a list`);
-    // Color exists
-    else {
+    if (!color) {
+      return this.sendErrorMessage(
+        message, INVALID_ARG, `Please provide a valid color, use ${prefix}colors for a list`
+      );
+    } else { // Color exists
       try {
+        // Update role
         await member.roles.remove(colors);
         await member.roles.add(color);
         channel.send(embed.addField('Color', `${oldColor} ➔ ${color}`, true).setColor(color.hexColor));
       } catch (err) {
         client.logger.error(err.stack);
-        this.sendErrorMessage(message, 1, 'Please check the role hierarchy', err.message);
+        this.sendErrorMessage(
+          message, COMMAND_FAIL, 'Unable to update role, please check the role hierarchy', err.message
+        );
       }
     }
   }
