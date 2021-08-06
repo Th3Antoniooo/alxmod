@@ -2,7 +2,18 @@ const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 const { success, fail } = require('../../utils/emojis.json');
 
-module.exports = class ToggleRandomColor extends Command {
+/**
+ * Calypso's ToggleRandomColor command
+ * @extends Command
+ */
+class ToggleRandomColor extends Command {
+
+  /**
+   * Creates instance of ToggleRandomColor command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'togglerandomcolor',
@@ -13,27 +24,44 @@ module.exports = class ToggleRandomColor extends Command {
       userPermissions: ['MANAGE_GUILD']
     });
   }
-  run(message) {
-    let randomColor = message.client.db.settings.selectRandomColor.pluck().get(message.guild.id);
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
+  async run(message) {
+
+    const { client, guild, channel, member, author } = message;
+    const enabled = '`enabled`';
+    const disabled = '`disabled`';
+
+    let randomColor = client.configs.get(guild.id).randomColor;
     randomColor = 1 - randomColor; // Invert
-    message.client.db.settings.updateRandomColor.run(randomColor, message.guild.id);
+
+    // Update db and config
+    await client.db.updateConfig(guild.id, 'randomColor', randomColor);
+
     let description, status;
     if (randomColor == 1) {
-      status = '`disabled`	🡪 `enabled`';
+      status = `${disabled} ➔ ${enabled}`;
       description = `\`Random color\` has been successfully **enabled**. ${success}`;
     } else {
-      status = '`enabled` 🡪 `disabled`';
-      description = `\`Random color\` has been successfully **disabled**. ${fail}`;   
-    } 
-    
+      status = `${enabled} ➔ ${disabled}`;
+      description = `\`Random color\` has been successfully **disabled**. ${fail}`;
+    }
+
     const embed = new MessageEmbed()
       .setTitle('Settings: `System`')
-      .setThumbnail(message.guild.iconURL())
+      .setThumbnail(guild.iconURL())
       .setDescription(description)
       .addField('Random Color', status, true)
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
-    message.channel.send(embed);
+      .setColor(guild.me.displayHexColor);
+    channel.send(embed);
   }
-};
+}
+
+module.exports = ToggleRandomColor;

@@ -38,7 +38,7 @@ class SetModChannels extends Command {
 	 * @param {Array<string>} args - The arguments for the command
 	 * @returns {undefined}
 	 */
-  run(message, args) {
+  async run(message, args) {
 
     const { client, guild, channel, member, author } = message;
     const none = '`None`';
@@ -73,7 +73,7 @@ class SetModChannels extends Command {
     else oldChannels = trimArray(oldChannels).join(' ');
 
     // Update mod only channels
-    client.actions.UpdateModOnlyChannels.run({ guildId: guild.id, channels });
+    await client.actions.UpdateModOnlyChannels.run({ guildId: guild.id, channels });
 
     // Send result
     const newChannels = channels.length == 0 ? none : trimArray(channels).join(' ');

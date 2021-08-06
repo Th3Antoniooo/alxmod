@@ -61,7 +61,7 @@ class SetSystemChannel extends Command {
     }
 
     // Update config
-    await this.client.db.updateConfig(guild.id, 'systemChannelId', systemChannel.id || null);
+    await client.db.updateConfig(guild.id, 'systemChannelId', systemChannel.id || null);
 
     const embed = new MessageEmbed()
       .setTitle('Settings: `System`')

@@ -62,7 +62,7 @@ module.exports = async (client) => {
     for (const channel of guild.channels.cache.values()) {
       if (modOnlyChannels.includes(channel.id)) channels.push(channel);
     }
-    client.actions.UpdateModOnlyChannels.run({ guildId: guild.id, channels });
+    await client.actions.UpdateModOnlyChannels.run({ guildId: guild.id, channels });
   }
 
   // Remove guilds left while offline
