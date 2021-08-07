@@ -19,60 +19,56 @@ module.exports = class Settings extends Command {
   }
   run(message, args) {
 
-    const { trimArray, replaceKeywords, replaceCrownKeywords } = message.client.utils;
+    const { client, guild, channel, member, author } = message;
+    const { trimArray, replaceKeywords, replacecrownKeywords } = client.utils;
+    const none = '`None`';
 
     // Set values
-    const row = message.client.db.settings.selectRow.get(message.guild.id);
-    const prefix = `\`${row.prefix}\``;
-    const systemChannel = message.guild.channels.cache.get(row.system_channel_id) || '`None`';
-    const starboardChannel = message.guild.channels.cache.get(row.starboard_channel_id) || '`None`';
-    const modLog = message.guild.channels.cache.get(row.mod_log_id) || '`None`';
-    const memberLog = message.guild.channels.cache.get(row.member_log_id) || '`None`';
-    const nicknameLog = message.guild.channels.cache.get(row.nickname_log_id) || '`None`';
-    const roleLog = message.guild.channels.cache.get(row.role_log_id) || '`None`';
-    const messageEditLog = message.guild.channels.cache.get(row.message_edit_log_id) || '`None`';
-    const messageDeleteLog = message.guild.channels.cache.get(row.message_delete_log_id) || '`None`';
-    const verificationChannel = message.guild.channels.cache.get(row.verification_channel_id) || '`None`';
-    const welcomeChannel = message.guild.channels.cache.get(row.welcome_channel_id) || '`None`';
-    const farewellChannel = message.guild.channels.cache.get(row.farewell_channel_id) || '`None`';
-    const crownChannel = message.guild.channels.cache.get(row.crown_channel_id) || '`None`';
-    let modChannels = [];
-    if (row.mod_channel_ids) {
-      for (const channel of row.mod_channel_ids.split(' ')) {
-        modChannels.push(message.guild.channels.cache.get(channel));
-      }
-      modChannels = trimArray(modChannels).join(' ');
-    }
-    if (modChannels.length === 0) modChannels = '`None`';
-    const adminRole = message.guild.roles.cache.get(row.admin_role_id) || '`None`';
-    const modRole = message.guild.roles.cache.get(row.mod_role_id) || '`None`';
-    const muteRole = message.guild.roles.cache.get(row.mute_role_id) || '`None`';
-    const autoRole = message.guild.roles.cache.get(row.auto_role_id) || '`None`';
-    const verificationRole = message.guild.roles.cache.get(row.verification_role_id) || '`None`';
-    const crownRole = message.guild.roles.cache.get(row.crown_role_id) || '`None`';
-    const autoKick = (row.auto_kick) ? `After \`${row.auto_kick}\` warn(s)` : '`disabled`';
-    const messagePoints = `\`${row.message_points}\``;
-    const commandPoints = `\`${row.command_points}\``;
-    const voicePoints = `\`${row.voice_points}\``;
-    let verificationMessage = (row.verification_message) ? replaceKeywords(row.verification_message) : '`None`';
-    let welcomeMessage = (row.welcome_message) ? replaceKeywords(row.welcome_message) : '`None`';
-    let farewellMessage = (row.farewell_message) ? replaceKeywords(row.farewell_message ) : '`None`';
-    let crownMessage = (row.crown_message) ? replaceCrownKeywords(row.crown_message) : '`None`';
-    const crownSchedule = (row.crown_schedule) ? `\`${row.crown_schedule}\`` : '`None`';
-    let disabledCommands = '`None`';
-    if (row.disabled_commands) 
-      disabledCommands = row.disabled_commands.split(' ').map(c => `\`${c}\``).join(' ');
+    const config = client.configs.get(guild.id);
+    const prefix = `\`${config.prefix}\``;
+    const systemChannel = guild.channels.cache.get(config.systemChannelId) || none;
+    const starboardChannel = guild.channels.cache.get(config.starboardChannelId) || none;
+    const modLog = guild.channels.cache.get(config.modLogChannelId) || none;
+    const memberLog = guild.channels.cache.get(config.memberLogChannelId) || none;
+    const nicknameLog = guild.channels.cache.get(config.nicknameLogChannelId) || none;
+    const roleLog = guild.channels.cache.get(config.roleLogChannelId) || none;
+    const messageEditLog = guild.channels.cache.get(config.messageEditLogChannelId) || none;
+    const messageDeleteLog = guild.channels.cache.get(config.messageDeleteLogChannelId) || none;
+    const verificationChannel = guild.channels.cache.get(config.verificationChannelId) || none;
+    const welcomeChannel = guild.channels.cache.get(config.welcomeChannelId) || none;
+    const farewellChannel = guild.channels.cache.get(config.farewellChannelId) || none;
+    const crownChannel = guild.channels.cache.get(config.crownChannelId) || none;
+    let modOnlyChannels = config.modOnlyChannels;
+    if (modOnlyChannels.length === 0) modOnlyChannels = none;
+    else modOnlyChannels = trimArray(modOnlyChannels).join(' ');
+    const adminRole = guild.roles.cache.get(config.adminRoleId) || none;
+    const modRole = guild.roles.cache.get(config.modRoleId) || none;
+    const muteRole = guild.roles.cache.get(config.muteRoleId) || none;
+    const autoRole = guild.roles.cache.get(config.autoRoleId) || none;
+    const verificationRole = guild.roles.cache.get(config.verificationRoleId) || none;
+    const crownRole = guild.roles.cache.get(config.crownRoleId) || none;
+    const autoKick = (config.auto_kick) ? `After \`${config.autoKick}\` warn(s)` : '`disabled`';
+    const messagePoints = `\`${config.messagePoints}\``;
+    const commandPoints = `\`${config.commandPoints}\``;
+    const voicePoints = `\`${config.voicePoints}\``;
+    let verificationMessage = (config.verificationMessage) ? replaceKeywords(config.verificationMessage) : none;
+    let welcomeMessage = (config.welcomeMessage) ? replaceKeywords(config.welcomeMessage) : none;
+    let farewellMessage = (config.farewellMessage) ? replaceKeywords(config.farewellMessage) : none;
+    let crownMessage = (config.crownMessage) ? replacecrownKeywords(config.crownMessage) : none;
+    const crownSchedule = (config.crownSchedule) ? `\`${config.crownSchedule}\`` : none;
+    let disabledCommands = none;
+    if (config.disabledCommands) disabledCommands = config.disabledCommands.map(c => `\`${c.name}\``).join(' ');
 
     // Get statuses
-    const verificationStatus = `\`${message.client.utils.getStatus(
-      row.verification_role_id && row.verification_channel_id && row.verification_message
+    const verificationStatus = `\`${client.utils.getStatus(
+      config.verificationRoleId && config.verificationChannelId && config.verificationMessage
     )}\``;
-    const randomColor = `\`${message.client.utils.getStatus(row.random_color)}\``;
-    const welcomeStatus = `\`${message.client.utils.getStatus(row.welcome_message && row.welcome_channel_id)}\``;
-    const farewellStatus = `\`${message.client.utils.getStatus(row.farewell_message && row.farewell_channel_id)}\``;
-    const pointsStatus = `\`${message.client.utils.getStatus(row.point_tracking)}\``;
-    const crownStatus = `\`${message.client.utils.getStatus(row.crown_role_id && row.crown_schedule)}\``;
-    
+    const randomColor = `\`${client.utils.getStatus(config.random_color)}\``;
+    const welcomeStatus = `\`${client.utils.getStatus(config.welcomeMessage && config.welcomeChannelId)}\``;
+    const farewellStatus = `\`${client.utils.getStatus(config.farewellMessage && config.farewellChannelId)}\``;
+    const pointsStatus = `\`${client.utils.getStatus(config.pointTracking)}\``;
+    const crownStatus = `\`${client.utils.getStatus(config.crown_role_id && config.crownSchedule)}\``;
+
     // Trim messages to 1024 characters
     if (verificationMessage.length > 1024) verificationMessage = verificationMessage.slice(0, 1021) + '...';
     if (welcomeMessage.length > 1024) welcomeMessage = welcomeMessage.slice(0, 1021) + '...';
@@ -85,15 +81,15 @@ module.exports = class Settings extends Command {
     let setting = args.join('').toLowerCase();
     if (setting.endsWith('setting')) setting = setting.slice(0, -7);
     const embed = new MessageEmbed()
-      .setThumbnail(message.guild.iconURL({ dynamic: true }))
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+      .setThumbnail(guild.iconURL({ dynamic: true }))
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
+      .setColor(guild.me.displayHexColor);
     switch (setting) {
       case 's':
       case 'sys':
       case 'system':
-        return message.channel.send(embed
+        return channel.send(embed
           .setTitle('Settings: `System`')
           .addField('Prefix', prefix, true)
           .addField('System Channel', systemChannel, true)
@@ -104,14 +100,14 @@ module.exports = class Settings extends Command {
           .addField('Auto Role', autoRole, true)
           .addField('Auto Kick', autoKick, true)
           .addField('Random Color', randomColor, true)
-          .addField('Mod Channels', modChannels)
+          .addField('Mod Channels', modOnlyChannels)
           .addField('Disabled Commands', disabledCommands)
         );
       case 'l':
       case 'log':
       case 'logs':
       case 'logging':
-        return message.channel.send(embed
+        return channel.send(embed
           .setTitle('Settings: `Logging`')
           .addField('Mod Log', modLog, true)
           .addField('Member Log', memberLog, true)
@@ -130,7 +126,7 @@ module.exports = class Settings extends Command {
           .addField('Channel', verificationChannel, true)
           .addField('Status', verificationStatus, true)
           .addField('Message', verificationMessage);
-        return message.channel.send(embed);
+        return channel.send(embed);
       case 'w':
       case 'welcome':
       case 'welcomes':
@@ -139,7 +135,7 @@ module.exports = class Settings extends Command {
           .addField('Channel', welcomeChannel, true)
           .addField('Status', welcomeStatus, true)
           .addField('Message', welcomeMessage);
-        return message.channel.send(embed);
+        return channel.send(embed);
       case 'f':
       case 'farewell':
       case 'farewells':
@@ -148,11 +144,11 @@ module.exports = class Settings extends Command {
           .addField('Channel', farewellChannel, true)
           .addField('Status', farewellStatus, true)
           .addField('Message', farewellMessage);
-        return message.channel.send(embed);
+        return channel.send(embed);
       case 'p':
       case 'point':
       case 'points':
-        return message.channel.send(embed
+        return channel.send(embed
           .setTitle('Settings: `Points`')
           .addField('Message Points', messagePoints, true)
           .addField('Command Points', commandPoints, true)
@@ -162,17 +158,17 @@ module.exports = class Settings extends Command {
       case 'c':
       case 'crown':
         embed
-          .setTitle('Settings: `Crown`')
+          .setTitle('Settings: `crown`')
           .addField('Role', crownRole, true)
           .addField('Channel', crownChannel, true)
           .addField('Schedule', crownSchedule, true)
           .addField('Status', crownStatus)
           .addField('Message', crownMessage);
-        return message.channel.send(embed);
+        return channel.send(embed);
     }
     if (setting)
       return this.sendErrorMessage(message, 0, stripIndent`
-        Please enter a valid settings category, use ${row.prefix}settings for a list
+        Please enter a valid settings category, use ${config.prefix}settings for a list
       `);
 
     /** ------------------------------------------------------------------------------------------------
@@ -181,15 +177,15 @@ module.exports = class Settings extends Command {
 
     embed
       .setTitle('Settings')
-      .setDescription(`**More Information:** \`${row.prefix}settings [category]\``)
+      .setDescription(`**More Information:** \`${config.prefix}settings [category]\``)
       .addField('System', '`11` settings', true)
       .addField('Logging', '`6` settings', true)
       .addField('Verification', '`3` settings', true)
       .addField('Welcomes', '`2` settings', true)
       .addField('Farewells', '`2` settings', true)
       .addField('Points', '`3` settings', true)
-      .addField('Crown', '`4` settings', true);
+      .addField('crown', '`4` settings', true);
 
-    message.channel.send(embed);
+    channel.send(embed);
   }
 };
