@@ -312,6 +312,32 @@ class Command {
   }
 
   /**
+   * Creates and sends mod log embed
+   * @param {Message} message
+   * @param {string} reason 
+   * @param {Object} fields
+   */
+  async sendModLogMessage(message, reason, fields = {}) {
+    const { client, guild, channel, author } = message;
+    const modLogChannelId = message.client.db.settings.selectModLogId.pluck().get(guild.id);
+    const modLog = message.guild.channels.cache.get(modLogChannelId);
+    if (!this.isAllowed(modLog)) {
+      const caseNumber = await message.client.utils.getCaseNumber(message.client, message.guild, modLog);
+      const embed = new MessageEmbed()
+        .setTitle(`Action: \`${message.client.utils.capitalize(this.name)}\``)
+        .addField('Moderator', message.member, true)
+        .setFooter(`Case #${caseNumber}`)
+        .setTimestamp()
+        .setColor(message.guild.me.displayHexColor);
+      for (const field in fields) {
+        embed.addField(field, fields[field], true);
+      }
+      embed.addField('Reason', reason);
+      modLog.send(embed).catch(err => message.client.logger.error(err.stack));
+    }
+  }
+
+  /**
    * Validates all options provided<br>
    * Code modified from: https://github.com/discordjs/Commando/blob/master/src/commands/base.js
    * @param {Client} client - The client this command belongs to
