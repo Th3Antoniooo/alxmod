@@ -49,10 +49,7 @@ class SetSystemChannel extends Command {
     if (args.length === 0) systemChannel = none; // Clear if no args provided
     else systemChannel = this.getChannelFromMention(message, args[0]) || guild.channels.cache.get(args[0]);
 
-    if (
-      (!client.isAllowed(systemChannel) || (systemChannel.type != 'text' && systemChannel.type != 'news')) &&
-      systemChannel != none
-    ) {
+    if (!client.isAllowed(systemChannel) && systemChannel != none) {
       return this.sendErrorMessage(
         message,
         this.errorTypes.INVALID_ARG,

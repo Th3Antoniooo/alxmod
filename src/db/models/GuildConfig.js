@@ -15,6 +15,7 @@ module.exports = (sequelize) => {
       defaultValue: prefix
     },
     systemChannelId: DataTypes.STRING,
+    starboardChannelId: DataTypes.STRING,
     welcomeChannelId: DataTypes.STRING,
     farewellChannelId: DataTypes.STRING,
     modLogChannelId: DataTypes.STRING,

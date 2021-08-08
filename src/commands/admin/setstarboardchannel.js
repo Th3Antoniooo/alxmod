@@ -1,9 +1,20 @@
 const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 const { success } = require('../../utils/emojis.json');
-const { oneLine, stripIndent } = require('common-tags');
+const { oneLine } = require('common-tags');
 
-module.exports = class SetStarboardChannel extends Command {
+/**
+ * Calypso's SetStarboardChannel command
+ * @extends Command
+ */
+class SetStarboardChannel extends Command {
+
+  /**
+   * Creates instance of SetStarboardChannel command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'setstarboardchannel',
@@ -18,34 +29,49 @@ module.exports = class SetStarboardChannel extends Command {
       examples: ['setstarboardchannel #starboard']
     });
   }
-  run(message, args) {
-    const starboardChannelId = message.client.db.settings.selectStarboardChannelId.pluck().get(message.guild.id);
-    const oldStarboardChannel = message.guild.channels.cache.get(starboardChannelId) || '`None`';
-    const embed = new MessageEmbed()
-      .setTitle('Settings: `Starboard`')
-      .setThumbnail(message.guild.iconURL({ dynamic: true }))
-      .setDescription(`The \`starboard channel\` was successfully updated. ${success}`)
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
-      .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
+  async run(message, args) {
+
+    const { client, guild, channel, member, author } = message;
+    const { INVALID_ARG } = this.errorTypes;
+    const none = '`None`';
+
+    // Get old channel
+    const starboardChannelId = client.configs.get(guild.id).starboardChannelId;
+    const oldStarboardChannel = guild.channels.cache.get(starboardChannelId) || none;
 
     // Clear if no args provided
-    if (args.length === 0) {
-      message.client.db.settings.updateStarboardChannelId.run(null, message.guild.id);
-      return message.channel.send(embed.addField('Starboard Channel', `${oldStarboardChannel} ➔ \`None\``));
+    let starboardChannel;
+    if (args.length === 0) starboardChannel = none;
+    else starboardChannel = this.getChannelFromMention(message, args[0]) || guild.channels.cache.get(args[0]);
+
+    if (!client.isAllowed(starboardChannel) && starboardChannel != none) {
+      return this.sendErrorMessage(
+        message,
+        INVALID_ARG,
+        'Please mention an accessible text or announcement channel or provide a valid text or announcement channel ID'
+      );
     }
 
-    const starboardChannel = this.getChannelFromMention(message, args[0]) || message.guild.channels.cache.get(args[0]);
-    if (
-      !starboardChannel || 
-      (starboardChannel.type != 'text' && starboardChannel.type != 'news') || 
-      !starboardChannel.viewable
-    ) {
-      return this.sendErrorMessage(message, 0, stripIndent`
-        Please mention an accessible text or announcement channel or provide a valid text or announcement channel ID
-      `);
-    }
-    message.client.db.settings.updateStarboardChannelId.run(starboardChannel.id, message.guild.id);
-    message.channel.send(embed.addField('Starboard Channel', `${oldStarboardChannel} ➔ ${starboardChannel}`));
+    // Update config
+    await client.db.updateConfig(guild.id, 'starboardChannelId', starboardChannel.id || null);
+
+    const embed = new MessageEmbed()
+      .setTitle('Settings: `System`')
+      .setThumbnail(guild.iconURL({ dynamic: true }))
+      .setDescription(`The \`starboard channel\` was successfully updated. ${success}`)
+      .addField('Starboard Channel', `${oldStarboardChannel} ➔ ${starboardChannel}`)
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
+      .setTimestamp()
+      .setColor(guild.me.displayHexColor);
+    channel.send(embed);
   }
-};
+}
+
+module.exports = SetStarboardChannel;
