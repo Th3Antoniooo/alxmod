@@ -1,59 +1,62 @@
 const { MessageEmbed } = require('discord.js');
 
 module.exports = (client, message) => {
-  
+
+  const { guild, channel, member, content, author, embeds, webhookID } = message;
+
   // Check for webhook and that message is not empty
-  if (message.webhookID || (!message.content && message.embeds.length === 0)) return;
-  
+  if (webhookID || (!content && embeds.length === 0)) return;
+
   const embed = new MessageEmbed()
     .setTitle('Message Update: `Delete`')
-    .setAuthor(`${message.author.tag}`, message.author.displayAvatarURL({ dynamic: true }))
+    .setAuthor(`${author.tag}`, author.displayAvatarURL({ dynamic: true }))
     .setTimestamp()
-    .setColor(message.guild.me.displayHexColor);
-  
+    .setColor(guild.me.displayHexColor);
+
   // Message delete
-  if (message.content) {
+  if (content) {
 
     // Dont send logs for starboard delete
-    const starboardChannelId = client.db.settings.selectStarboardChannelId.pluck().get(message.guild.id);
-    const starboardChannel = message.guild.channels.cache.get(starboardChannelId);
-    if (message.channel == starboardChannel) return;
+    const starboardChannelId = client.configs.get(guild.id).starboardChannelId;
+    const starboardChannel = guild.channels.cache.get(starboardChannelId);
+    if (channel == starboardChannel) return;
 
     // Get message delete log
-    const messageDeleteLogId = client.db.settings.selectMessageDeleteLogId.pluck().get(message.guild.id);
-    const messageDeleteLog = message.guild.channels.cache.get(messageDeleteLogId);
+    const messageDeleteLogId = client.db.settings.selectMessageDeleteLogId.pluck().get(guild.id);
+    const messageDeleteLog = guild.channels.cache.get(messageDeleteLogId);
     if (
       messageDeleteLog &&
       messageDeleteLog.viewable &&
-      messageDeleteLog.permissionsFor(message.guild.me).has(['SEND_MESSAGES', 'EMBED_LINKS'])
+      messageDeleteLog.permissionsFor(guild.me).has(['SEND_MESSAGES', 'EMBED_LINKS'])
     ) {
 
-      if (message.content.length > 1024) message.content = message.content.slice(0, 1021) + '...';
+      let trimmedContent;
+      if (content.length > 1024) trimmedContent = content.slice(0, 1021) + '...';
 
       embed
-        .setDescription(`${message.member}'s **message** in ${message.channel} was deleted.`)
-        .addField('Message', message.content);
-        
+        .setDescription(`${member}'s **message** in ${channel} was deleted.`)
+        .addField('Message', trimmedContent);
+
       messageDeleteLog.send(embed);
     }
 
   // Embed delete
-  } else { 
+  } else {
 
     // Get message delete log
-    const messageDeleteLogId = client.db.settings.selectMessageDeleteLogId.pluck().get(message.guild.id);
-    const messageDeleteLog = message.guild.channels.cache.get(messageDeleteLogId);
+    const messageDeleteLogId = client.db.settings.selectMessageDeleteLogId.pluck().get(guild.id);
+    const messageDeleteLog = guild.channels.cache.get(messageDeleteLogId);
     if (
       messageDeleteLog &&
       messageDeleteLog.viewable &&
-      messageDeleteLog.permissionsFor(message.guild.me).has(['SEND_MESSAGES', 'EMBED_LINKS'])
+      messageDeleteLog.permissionsFor(guild.me).has(['SEND_MESSAGES', 'EMBED_LINKS'])
     ) {
 
       embed
         .setTitle('Message Update: `Delete`')
-        .setDescription(`${message.member}'s **message embed** in ${message.channel} was deleted.`);
+        .setDescription(`${member}'s **message embed** in ${channel} was deleted.`);
       messageDeleteLog.send(embed);
     }
   }
-  
+
 };
