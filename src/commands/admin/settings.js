@@ -28,7 +28,7 @@ module.exports = class Settings extends Command {
     const prefix = `\`${config.prefix}\``;
     const systemChannel = guild.channels.cache.get(config.systemChannelId) || none;
     const starboardChannel = guild.channels.cache.get(config.starboardChannelId) || none;
-    const modLog = guild.channels.cache.get(config.modLogChannelId) || none;
+    const modLogChannel = guild.channels.cache.get(config.modLogChannelId) || none;
     const memberLog = guild.channels.cache.get(config.memberLogChannelId) || none;
     const nicknameLog = guild.channels.cache.get(config.nicknameLogChannelId) || none;
     const roleLog = guild.channels.cache.get(config.roleLogChannelId) || none;
@@ -109,7 +109,7 @@ module.exports = class Settings extends Command {
       case 'logging':
         return channel.send(embed
           .setTitle('Settings: `Logging`')
-          .addField('Mod Log', modLog, true)
+          .addField('Mod Log', modLogChannel, true)
           .addField('Member Log', memberLog, true)
           .addField('Nickname Log', nicknameLog, true)
           .addField('Role Log', roleLog, true)

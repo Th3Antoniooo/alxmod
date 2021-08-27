@@ -1,9 +1,20 @@
 const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 const { success } = require('../../utils/emojis.json');
-const { oneLine, stripIndent } = require('common-tags');
+const { oneLine } = require('common-tags');
 
-module.exports = class SetModLog extends Command {
+/**
+ * Calypso's SetModLog command
+ * @extends Command
+ */
+class SetModLog extends Command {
+
+  /**
+   * Creates instance of SetModLog command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'setmodlog',
@@ -18,29 +29,46 @@ module.exports = class SetModLog extends Command {
       examples: ['setmodlog #mod-log']
     });
   }
-  run(message, args) {
-    const modLogId = message.client.db.settings.selectModLogId.pluck().get(message.guild.id);
-    const oldModLog = message.guild.channels.cache.get(modLogId) || '`None`';
-    const embed = new MessageEmbed()
-      .setTitle('Settings: `Logging`')
-      .setThumbnail(message.guild.iconURL({ dynamic: true }))
-      .setDescription(`The \`mod log\` was successfully updated. ${success}`)
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
-      .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
 
-    // Clear if no args provided
-    if (args.length === 0) {
-      message.client.db.settings.updateModLogId.run(null, message.guild.id);
-      return message.channel.send(embed.addField('Mod Log', `${oldModLog} ➔ \`None\``));
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
+  async run(message, args) {
+
+    const { client, guild, channel, member, author } = message;
+    const none = '`None`';
+
+    const modLogChannelId = client.configs.get(guild.id).modLogChannelId;
+    const oldModLogChannel = guild.channels.cache.get(modLogChannelId) || none;
+
+    let modLogChannel;
+    if (args.length === 0) modLogChannel = none; // Clear if no args provided
+    else modLogChannel = this.getChannelFromMention(message, args[0]) || guild.channels.cache.get(args[0]);
+
+    if (!client.isAllowed(modLogChannel) && modLogChannel != none) {
+      return this.sendErrorMessage(
+        message,
+        this.errorTypes.INVALID_ARG,
+        'Please mention an accessible text or announcement channel or provide a valid text or announcement channel ID'
+      );
     }
 
-    const modLog = this.getChannelFromMention(message, args[0]) || message.guild.channels.cache.get(args[0]);
-    if (!modLog || modLog.type != 'text' || !modLog.viewable) 
-      return this.sendErrorMessage(message, 0, stripIndent`
-        Please mention an accessible text channel or provide a valid text channel ID
-      `);
-    message.client.db.settings.updateModLogId.run(modLog.id, message.guild.id);
-    message.channel.send(embed.addField('Mod Log', `${oldModLog} ➔ ${modLog}`));
+    // Update config
+    await client.db.updateConfig(guild.id, 'modLogChannelId', modLogChannel.id || null);
+
+    const embed = new MessageEmbed()
+      .setTitle('Settings: `Logging`')
+      .setThumbnail(guild.iconURL({ dynamic: true }))
+      .setDescription(`The \`mod log\` was successfully updated. ${success}`)
+      .addField('Mod Log', `${oldModLogChannel} ➔ ${modLogChannel}`)
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
+      .setTimestamp()
+      .setColor(guild.me.displayHexColor);
+    channel.send(embed);
   }
-};
+}
+
+module.exports = SetModLog;

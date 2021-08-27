@@ -77,11 +77,36 @@ function getOrdinalNumeral(number) {
   else return number + 'th';
 }
 
+/**
+ * Gets the next moderation case number
+ * @param {Guild} guild
+ * @param {Guild} guild
+ */
+async function getCaseNumber(guild, modLogChannel) {
+
+  const message = (await modLogChannel.messages.fetch({ limit: 100 })).filter(m => m.member === guild.me &&
+    m.embeds[0] &&
+    m.embeds[0].type == 'rich' &&
+    m.embeds[0].footer &&
+    m.embeds[0].footer.text &&
+    m.embeds[0].footer.text.startsWith('Case')
+  ).first();
+
+  if (message) {
+    const footer = message.embeds[0].footer.text;
+    const num = parseInt(footer.split('#').pop());
+    if (!isNaN(num)) return num + 1;
+  }
+
+  return 1;
+}
+
 module.exports = {
   capitalize,
   removeElement,
   trimArray,
   trimStringFromArray,
   getRange,
-  getOrdinalNumeral
+  getOrdinalNumeral,
+  getCaseNumber
 };

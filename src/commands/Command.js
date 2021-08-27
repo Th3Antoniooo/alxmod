@@ -273,7 +273,9 @@ class Command {
    * @returns {undefined}
    */
   sendCooldownMessage(message, cooldown) {
+
     const { guild, channel, author } = message;
+
     const seconds = this.cooldown - Math.floor((Date.now() - cooldown.start) / 1000);
     const embed = new MessageEmbed()
       .setAuthor(`${author.tag}`, author.displayAvatarURL({ dynamic: true }))
@@ -293,20 +295,25 @@ class Command {
    * @returns {undefined}
    */
   sendErrorMessage(message, errorType = this.errorTypes.INVALID_ARG, errorMessage = '', stackTrace = null) {
+
     const { client, guild, channel, author } = message;
     const { INVALID_ARG, MISSING_ARG, MISSING_BOT_PERM } = this.errorTypes;
+
     const prefix = this.client.configs.get(guild.id).prefix;
     const user = (errorType === MISSING_BOT_PERM) ? client.user : author;
+
     const embed = new MessageEmbed()
       .setAuthor(`${user.tag}`, user.displayAvatarURL({ dynamic: true }))
       .setTitle(`${fail}  Error: \`${this.name}\``)
       .setDescription(`\`\`\`diff\n+ ${errorType}\n- ${errorMessage}\`\`\``)
       .setTimestamp()
       .setColor(guild.me.displayHexColor);
+
     if (errorType === INVALID_ARG || errorType === MISSING_ARG) {
       embed.addField('Usage', `\`${prefix}${this.usage}\``);
       if (this.examples) embed.addField('Examples', this.examples.map(e => `\`${prefix}${e}\``).join('\n'));
     }
+
     if (stackTrace) embed.addField('Error Message', `\`\`\`${stackTrace}\`\`\``);
     channel.send(embed);
   }
@@ -314,26 +321,30 @@ class Command {
   /**
    * Creates and sends mod log embed
    * @param {Message} message
-   * @param {string} reason 
+   * @param {string} reason
    * @param {Object} fields
    */
   async sendModLogMessage(message, reason, fields = {}) {
-    const { client, guild, channel, author } = message;
-    const modLogChannelId = message.client.db.settings.selectModLogId.pluck().get(guild.id);
-    const modLog = message.guild.channels.cache.get(modLogChannelId);
-    if (!this.isAllowed(modLog)) {
-      const caseNumber = await message.client.utils.getCaseNumber(message.client, message.guild, modLog);
+
+    const { client, guild, member } = message;
+    const { getCaseNumber, capitalize } = client.utils;
+
+    const modLogChannelId = client.configs.get(guild.id).modLogChannelId;
+    const modLogChannel = guild.channels.cache.get(modLogChannelId); // Get mod log
+
+    if (!this.isAllowed(modLogChannel)) {
+      const caseNumber = await getCaseNumber(guild, modLogChannel);
       const embed = new MessageEmbed()
-        .setTitle(`Action: \`${message.client.utils.capitalize(this.name)}\``)
-        .addField('Moderator', message.member, true)
+        .setTitle(`Action: \`${capitalize(this.name)}\``)
+        .addField('Moderator', member, true)
         .setFooter(`Case #${caseNumber}`)
         .setTimestamp()
-        .setColor(message.guild.me.displayHexColor);
+        .setColor(guild.me.displayHexColor);
       for (const field in fields) {
         embed.addField(field, fields[field], true);
       }
       embed.addField('Reason', reason);
-      modLog.send(embed).catch(err => message.client.logger.error(err.stack));
+      modLogChannel.send(embed).catch(err => client.logger.error(err.stack));
     }
   }
 
