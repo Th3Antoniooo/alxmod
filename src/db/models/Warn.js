@@ -1,9 +1,9 @@
 const { DataTypes, Model } = require('sequelize');
 
-class GuildMember extends Model {}
+class Warn extends Model {}
 
 module.exports = (sequelize) => {
-  GuildMember.init({
+  Warn.init({
     id: { // Auto increment PK because Sequelize doesn't support referencing composite keys as FKs
       type: DataTypes.INTEGER,
       autoIncrement: true,
@@ -17,11 +17,15 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING,
       allowNull: false
     },
-    displayName: DataTypes.STRING,
-    joinedAt: {
+    mod: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    date: {
       type: DataTypes.DATE,
       allowNull: false
-    }
+    },
+    reason: DataTypes.STRING,
   }, {
     indexes: [
       {
@@ -29,7 +33,7 @@ module.exports = (sequelize) => {
         fields: ['user_id', 'guild_id']
       }
     ],
-    tableName: 'guild_members',
+    tableName: 'warns',
     underscored: true,
     sequelize
   });

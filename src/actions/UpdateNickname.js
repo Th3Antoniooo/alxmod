@@ -8,7 +8,7 @@ class UpdateNickname extends Action {
     // Update username and discriminator
     const { GuildMember } = this._models;
     const member = await GuildMember.findOne({ where: { id: oldMember.id }});
-    member.nickname = newMember.nickname;
+    member.displayName = newMember.nickname;
     await member.save();
   }
 }

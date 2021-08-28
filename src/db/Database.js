@@ -62,22 +62,32 @@ class Database {
   _associate() {
 
     // Snag models
-    const { Guild, GuildConfig, GuildMember, User, ModOnlyChannel } = this.models;
+    const { Guild, GuildConfig, GuildMember, User, ModOnlyChannel, Warn } = this.models;
 
-    // A guild has one configuration
+    // A guild has one config
+    // A guild config belongs to one guild
     Guild.hasOne(GuildConfig, { foreignKey: 'id' });
-
-    // A guild configuration belongs to one guild
     GuildConfig.belongsTo(Guild, { foreignKey: 'id' });
 
+    // A guild has many guild members
     // A guild member belongs to one guild
+    Guild.hasMany(GuildMember, { foreignKey: 'guildId' });
     GuildMember.belongsTo(Guild, { foreignKey: 'guildId', onDelete: 'cascade' });
 
+    // A user has many guild members
     // A guild member belongs to one user
+    User.hasMany(GuildMember, { foreignKey: 'userId' });
     GuildMember.belongsTo(User, { foreignKey: 'userId', onDelete: 'cascade' });
 
+    // A guild config has many mod only channels
     // A mod only channel belongs to one guild config
+    GuildConfig.hasMany(ModOnlyChannel, { foreignKey: 'guildId' });
     ModOnlyChannel.belongsTo(GuildConfig, { foreignKey: 'guildId', onDelete: 'cascade' });
+
+    // A guild member has many warns
+    // A warn belongs to one guild member
+    GuildMember.hasMany(Warn, { foreignKey: 'guildMemberId' });
+    Warn.belongsTo(GuildMember, { foreignKey: 'guildMemberId', onDelete: 'cascade' });
 
   }
 
