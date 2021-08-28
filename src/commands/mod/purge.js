@@ -1,8 +1,19 @@
 const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
-const { oneLine, stripIndent } = require('common-tags');
+const { oneLine } = require('common-tags');
 
-module.exports = class Purge extends Command {
+/**
+ * Calypso's Purge command
+ * @extends Command
+ */
+class Purge extends Command {
+
+  /**
+   * Creates instance of Purge command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'purge',
@@ -21,33 +32,58 @@ module.exports = class Purge extends Command {
       examples: ['purge 20', 'purge #general 10', 'purge @Nettles 50', 'purge #general @Nettles 5']
     });
   }
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
   async run(message, args) {
 
-    let channel = this.getChannelFromMention(message, args[0]) || message.guild.channels.cache.get(args[0]);
+    const { client, guild, author } = message;
+    const { MISSING_ARG, INVALID_ARG } = this.errorTypes;
+    const none = '`None`';
+
+    // Get channel
+    let channel = this.getChannelFromMention(message, args[0]) || guild.channels.cache.get(args[0]);
     if (channel) {
       args.shift();
     } else channel = message.channel;
 
-    // Check type and viewable
-    if (channel.type != 'text' || !channel.viewable) return this.sendErrorMessage(message, 0, stripIndent`
-      Please mention an accessible text channel or provide a valid text channel ID
-    `);
+    // Check channel
+    if (!client.isAllowed(channel)) {
+      return this.sendErrorMessage(
+        message, INVALID_ARG, 'Please mention an accessible text channel or provide a valid text channel ID'
+      );
+    }
 
-    let member = this.getMemberFromMention(message, args[0]) || message.guild.members.cache.get(args[0]);
+    // Get member
+    let member = this.getMemberFromMention(message, args[0]) || guild.members.cache.get(args[0]);
     if (member) {
       args.shift();
     }
 
+    // Get amount
     const amount = parseInt(args[0]);
-    if (isNaN(amount) === true || !amount || amount < 0 || amount > 100)
-      return this.sendErrorMessage(message, 0, 'Please provide a message count between 1 and 100');
+    if (isNaN(amount) === true || !amount || amount < 0 || amount > 100) { // Invalid amount
+      return this.sendErrorMessage(
+        message, !args[0] ? MISSING_ARG : INVALID_ARG, 'Please provide a message count between 1 and 100'
+      );
+    }
 
     // Check channel permissions
-    if (!channel.permissionsFor(message.guild.me).has(['MANAGE_MESSAGES']))
-      return this.sendErrorMessage(message, 0, 'I do not have permission to manage messages in the provided channel');
+    if (!channel.permissionsFor(guild.me).has(['MANAGE_MESSAGES'])) {
+      return this.sendErrorMessage(
+        message,
+        INVALID_ARG,
+        'I do not have permission to manage messages in the provided channel'
+      );
+    }
 
+    // Reason
     let reason = args.slice(1).join(' ');
-    if (!reason) reason = '`None`';
+    if (!reason) reason = none;
     if (reason.length > 1024) reason = reason.slice(0, 1021) + '...';
 
     await message.delete(); // Delete command message
@@ -68,12 +104,12 @@ module.exports = class Purge extends Command {
             This message will be deleted after \`10 seconds\`.
           `)
           .addField('Channel', channel, true)
-          .addField('Member', member )
+          .addField('Member', member)
           .addField('Found Messages', `\`${messages.size}\``, true)
-          .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+          .setFooter(message.member.displayName, author.displayAvatarURL({ dynamic: true }))
           .setTimestamp()
-          .setColor(message.guild.me.displayHexColor)
-      ).then(msg => msg.delete({ timeout: 10000 })).catch(err => message.client.logger.error(err.stack));
+          .setColor(guild.me.displayHexColor)
+      ).then(msg => msg.delete({ timeout: 10000 })).catch(err => client.logger.error(err.stack));
 
     } else { // Purge messages
 
@@ -87,23 +123,23 @@ module.exports = class Purge extends Command {
           .addField('Channel', channel, true)
           .addField('Message Count', `\`${messages.size}\``, true)
           .addField('Reason', reason)
-          .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+          .setFooter(message.member.displayName, author.displayAvatarURL({ dynamic: true }))
           .setTimestamp()
-          .setColor(message.guild.me.displayHexColor);
-  
+          .setColor(guild.me.displayHexColor);
+
         if (member) {
           embed
-            .spliceFields(1, 1, { name: 'Found Messages', value:  `\`${messages.size}\``, inline: true})
-            .spliceFields(1, 0, { name: 'Member', value: member, inline: true});
+            .spliceFields(1, 1, { name: 'Found Messages', value:  `\`${messages.size}\``, inline: true })
+            .spliceFields(1, 0, { name: 'Member', value: member, inline: true });
         }
 
         message.channel.send(embed).then(msg => msg.delete({ timeout: 10000 }))
-          .catch(err => message.client.logger.error(err.stack));
+          .catch(err => client.logger.error(err.stack));
       });
     }
-    
+
     // Update mod log
-    const fields = { 
+    const fields = {
       Channel: channel
     };
 
@@ -115,4 +151,6 @@ module.exports = class Purge extends Command {
     this.sendModLogMessage(message, reason, fields);
 
   }
-};
+}
+
+module.exports = Purge;
