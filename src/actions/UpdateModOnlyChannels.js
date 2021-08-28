@@ -12,7 +12,7 @@ class UpdateModOnlyChannels extends Action {
 
     // Update db
     channels = channels.map(channel => {
-      return { guildId, channelId: channel.id, name: channel.name };
+      return { id: channel.id, guildId, name: channel.name };
     });
 
     await ModOnlyChannel.destroy({ where: { guildId }}); // Remove old channels

@@ -57,7 +57,7 @@ module.exports = async (client) => {
     }
 
     // Load all mod only channels
-    const modOnlyChannels = (await ModOnlyChannel.findAll({ where: { guildId: guild.id }})).map(row => row.channelId);
+    const modOnlyChannels = (await ModOnlyChannel.findAll({ where: { guildId: guild.id }})).map(row => row.id);
     const channels = [];
     for (const channel of guild.channels.cache.values()) {
       if (modOnlyChannels.includes(channel.id)) channels.push(channel);
