@@ -1,9 +1,20 @@
 const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 const { success } = require('../../utils/emojis.json');
-const { oneLine, stripIndent } = require('common-tags');
+const { oneLine } = require('common-tags');
 
-module.exports = class SetNicknameLog extends Command {
+/**
+ * Calypso's SetNicknameLog command
+ * @extends Command
+ */
+class SetNicknameLog extends Command {
+
+  /**
+   * Creates instance of SetNicknameLog command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'setnicknamelog',
@@ -18,29 +29,46 @@ module.exports = class SetNicknameLog extends Command {
       examples: ['setnicknamelog #bot-log']
     });
   }
-  run(message, args) {
-    const nicknameLogId = message.client.db.settings.selectNicknameLogId.pluck().get(message.guild.id);
-    const oldNicknameLog = message.guild.channels.cache.get(nicknameLogId) || '`None`';
-    const embed = new MessageEmbed()
-      .setTitle('Settings: `Logging`')
-      .setThumbnail(message.guild.iconURL({ dynamic: true }))
-      .setDescription(`The \`nickname log\` was successfully updated. ${success}`)
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
-      .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
 
-    // Clear if no args provided
-    if (args.length === 0) {
-      message.client.db.settings.updateNicknameLogId.run(null, message.guild.id);
-      return message.channel.send(embed.addField('Nickname Log', `${oldNicknameLog} ➔ \`None\``));
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
+  async run(message, args) {
+
+    const { client, guild, channel, member, author } = message;
+    const none = '`None`';
+
+    const nicknameLogChannelId = client.configs.get(guild.id).nicknameLogChannelId;
+    const oldNicknameLogChannel = guild.channels.cache.get(nicknameLogChannelId) || none;
+
+    let nicknameLogChannel;
+    if (args.length === 0) nicknameLogChannel = none; // Clear if no args provided
+    else nicknameLogChannel = this.getChannelFromMention(message, args[0]) || guild.channels.cache.get(args[0]);
+
+    if (!client.isAllowed(nicknameLogChannel) && nicknameLogChannel != none) {
+      return this.sendErrorMessage(
+        message,
+        this.errorTypes.INVALID_ARG,
+        'Please mention an accessible text or announcement channel or provide a valid text or announcement channel ID'
+      );
     }
 
-    const nicknameLog = this.getChannelFromMention(message, args[0]) || message.guild.channels.cache.get(args[0]);
-    if (!nicknameLog || nicknameLog.type != 'text' || !nicknameLog.viewable) 
-      return this.sendErrorMessage(message, 0, stripIndent`
-        Please mention an accessible text channel or provide a valid text channel ID
-      `);
-    message.client.db.settings.updateNicknameLogId.run(nicknameLog.id, message.guild.id);
-    message.channel.send(embed.addField('Nickname Log', `${oldNicknameLog} ➔ ${nicknameLog}`));
+    // Update config
+    await client.db.updateConfig(guild.id, 'nicknameLogChannelId', nicknameLogChannel.id || null);
+
+    const embed = new MessageEmbed()
+      .setTitle('Settings: `Logging`')
+      .setThumbnail(guild.iconURL({ dynamic: true }))
+      .setDescription(`The \`nickname log\` was successfully updated. ${success}`)
+      .addField('Nickname Log', `${oldNicknameLogChannel} ➔ ${nicknameLogChannel}`)
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
+      .setTimestamp()
+      .setColor(guild.me.displayHexColor);
+    channel.send(embed);
   }
-};
+}
+
+module.exports = SetNicknameLog;

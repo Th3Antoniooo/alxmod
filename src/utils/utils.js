@@ -101,6 +101,32 @@ async function getCaseNumber(guild, modLogChannel) {
   return 1;
 }
 
+/**
+ * Gets current status
+ * @param {...*} args
+ */
+function getStatus(...args) {
+  for (const arg of args) {
+    if (!arg) return '`disabled`';
+  }
+  return '`enabled`';
+}
+
+/**
+ * Surrounds message keywords with backticks
+ * @param {string} message
+ */
+function replaceKeywords(message) {
+  if (!message) return message;
+  else {
+    return message
+      .replace(/\?member/g, '`?member`')
+      .replace(/\?username/g, '`?username`')
+      .replace(/\?tag/g, '`?tag`')
+      .replace(/\?size/g, '`?size`');
+  }
+}
+
 module.exports = {
   capitalize,
   removeElement,
@@ -108,5 +134,7 @@ module.exports = {
   trimStringFromArray,
   getRange,
   getOrdinalNumeral,
-  getCaseNumber
+  getCaseNumber,
+  getStatus,
+  replaceKeywords
 };

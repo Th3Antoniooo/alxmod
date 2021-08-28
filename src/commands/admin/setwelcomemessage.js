@@ -3,7 +3,18 @@ const { MessageEmbed } = require('discord.js');
 const { success } = require('../../utils/emojis.json');
 const { oneLine } = require('common-tags');
 
-module.exports = class SetWelcomeMessage extends Command {
+/**
+ * Calypso's SetWelcomeMessage command
+ * @extends Command
+ */
+class SetWelcomeMessage extends Command {
+
+  /**
+   * Creates instance of SetWelcomeMessage command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'setwelcomemessage',
@@ -23,48 +34,53 @@ module.exports = class SetWelcomeMessage extends Command {
       examples: ['setwelcomemessage ?member has joined the server!']
     });
   }
-  run(message, args) {
 
-    const { welcome_channel_id: welcomeChannelId, welcome_message: oldWelcomeMessage } = 
-      message.client.db.settings.selectWelcomes.get(message.guild.id);
-    let welcomeChannel = message.guild.channels.cache.get(welcomeChannelId);
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
+  async run(message, args) {
+
+    const { client, guild, channel, member, author, content } = message;
+    const { getStatus, replaceKeywords } = client.utils;
+    const none = '`None`';
+
+    const welcomeChannelId = client.configs.get(guild.id).welcomeChannelId;
+    const welcomeChannel = guild.channels.cache.get(welcomeChannelId) || none;
+    const oldWelcomeMessage = client.configs.get(guild.id).welcomeMessage;
 
     // Get status
-    const oldStatus = message.client.utils.getStatus(welcomeChannelId, oldWelcomeMessage);
+    const oldStatus = getStatus(welcomeChannelId, oldWelcomeMessage);
+
+    // Get welcome message
+    let welcomeMessage;
+    if (args[0]) {
+      welcomeMessage = content.slice(content.indexOf(args[0]), content.length);
+      // Trim message
+      if (welcomeMessage && welcomeMessage.length > 1024) welcomeMessage = welcomeMessage.slice(0, 1021) + '...';
+    }
+
+    // Update status
+    const status = getStatus(welcomeChannelId, welcomeMessage);
+    const statusUpdate = (oldStatus != status) ? `${oldStatus} ➔ ${status}` : oldStatus;
+
+    // Update config
+    await client.db.updateConfig(guild.id, 'welcomeMessage', welcomeMessage || null);
 
     const embed = new MessageEmbed()
       .setTitle('Settings: `Welcomes`')
-      .setThumbnail(message.guild.iconURL({ dynamic: true }))
       .setDescription(`The \`welcome message\` was successfully updated. ${success}`)
-      .addField('Channel', welcomeChannel || '`None`', true)
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
-      .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
-
-    if (!args[0]) {
-      message.client.db.settings.updateWelcomeMessage.run(null, message.guild.id);
-
-      // Update status
-      const status = 'disabled';
-      const statusUpdate = (oldStatus != status) ? `\`${oldStatus}\` ➔ \`${status}\`` : `\`${oldStatus}\``; 
-
-      return message.channel.send(embed
-        .addField('Status', statusUpdate, true)
-        .addField('Message', '`None`')
-      );
-    }
-    
-    let welcomeMessage = message.content.slice(message.content.indexOf(args[0]), message.content.length);
-    message.client.db.settings.updateWelcomeMessage.run(welcomeMessage, message.guild.id);
-    if (welcomeMessage.length > 1024) welcomeMessage = welcomeMessage.slice(0, 1021) + '...';
-
-    // Update status
-    const status =  message.client.utils.getStatus(welcomeChannel, welcomeMessage);
-    const statusUpdate = (oldStatus != status) ? `\`${oldStatus}\` ➔ \`${status}\`` : `\`${oldStatus}\``;
-
-    message.channel.send(embed
+      .addField('Channel', `${welcomeChannel}`, true)
       .addField('Status', statusUpdate, true)
-      .addField('Message', message.client.utils.replaceKeywords(welcomeMessage))
-    );
+      .addField('Message', replaceKeywords(welcomeMessage) || none)
+      .setThumbnail(guild.iconURL({ dynamic: true }))
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
+      .setTimestamp()
+      .setColor(guild.me.displayHexColor);
+    channel.send(embed);
   }
-};
+}
+
+module.exports = SetWelcomeMessage;

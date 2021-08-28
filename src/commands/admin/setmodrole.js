@@ -2,7 +2,18 @@ const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 const { success } = require('../../utils/emojis.json');
 
-module.exports = class SetModRole extends Command {
+/**
+ * Calypso's SetModRole command
+ * @extends Command
+ */
+class SetModRole extends Command {
+
+  /**
+   * Creates instance of SetModRole command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'setmodrole',
@@ -14,28 +25,38 @@ module.exports = class SetModRole extends Command {
       examples: ['setmodrole @Mod']
     });
   }
-  run(message, args) {
-    const modRoleId = message.client.db.settings.selectModRoleId.pluck().get(message.guild.id);
-    const oldModRole = message.guild.roles.cache.find(r => r.id === modRoleId) || '`None`';
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
+  async run(message, args) {
+
+    const { client, guild, channel, member, author } = message;
+    const none = '`None`';
+
+    const modRoleId = client.configs.get(guild.id).modRoleId;
+    const oldModRole = guild.roles.cache.find(r => r.id === modRoleId) || none;
+
+    let modRole;
+    if (args.length === 0) modRole = none; // Clear if no args provided
+    else modRole = this.getRoleFromMention(message, args[0]) || message.guild.roles.cache.get(args[0]);
+
+    // Update config
+    await client.db.updateConfig(guild.id, 'modRoleId', modRole.id || null);
 
     const embed = new MessageEmbed()
       .setTitle('Settings: `System`')
-      .setThumbnail(message.guild.iconURL({ dynamic: true }))
+      .setThumbnail(guild.iconURL({ dynamic: true }))
       .setDescription(`The \`mod role\` was successfully updated. ${success}`)
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+      .addField('Mod Role', `${oldModRole} ➔ ${modRole}`)
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
-
-    // Clear if no args provided
-    if (args.length === 0) {
-      message.client.db.settings.updateModRoleId.run(null, message.guild.id);
-      return message.channel.send(embed.addField('Mod Role', `${oldModRole} ➔ \`None\``));
-    }
-
-    // Update role
-    const modRole = this.getRoleFromMention(message, args[0]) || message.guild.roles.cache.get(args[0]);
-    if (!modRole) return this.sendErrorMessage(message, 0, 'Please mention a role or provide a valid role ID');
-    message.client.db.settings.updateModRoleId.run(modRole.id, message.guild.id);
-    message.channel.send(embed.addField('Mod Role', `${oldModRole} ➔ ${modRole}`));
+      .setColor(guild.me.displayHexColor);
+    channel.send(embed);
   }
-};
+}
+
+module.exports = SetModRole;

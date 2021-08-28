@@ -1,9 +1,20 @@
 const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 const { success } = require('../../utils/emojis.json');
-const { oneLine, stripIndent } = require('common-tags');
+const { oneLine } = require('common-tags');
 
-module.exports = class SetRoleLog extends Command {
+/**
+ * Calypso's SetRoleLog command
+ * @extends Command
+ */
+class SetRoleLog extends Command {
+
+  /**
+   * Creates instance of SetRoleLog command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'setrolelog',
@@ -18,29 +29,46 @@ module.exports = class SetRoleLog extends Command {
       examples: ['setrolelog #bot-log']
     });
   }
-  run(message, args) {
-    const roleLogId = message.client.db.settings.selectRoleLogId.pluck().get(message.guild.id);
-    const oldRoleLog = message.guild.channels.cache.get(roleLogId) || '`None`';
-    const embed = new MessageEmbed()
-      .setTitle('Settings: `Logging`')
-      .setThumbnail(message.guild.iconURL({ dynamic: true }))
-      .setDescription(`The \`role log\` was successfully updated. ${success}`)
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
-      .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
 
-    // Clear if no args provided
-    if (args.length === 0) {
-      message.client.db.settings.updateRoleLogId.run(null, message.guild.id);
-      return message.channel.send(embed.addField('Role Log', `${oldRoleLog} ➔ \`None\``));
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
+  async run(message, args) {
+
+    const { client, guild, channel, member, author } = message;
+    const none = '`None`';
+
+    const roleLogChannelId = client.configs.get(guild.id).roleLogChannelId;
+    const oldRoleLogChannel = guild.channels.cache.get(roleLogChannelId) || none;
+
+    let roleLogChannel;
+    if (args.length === 0) roleLogChannel = none; // Clear if no args provided
+    else roleLogChannel = this.getChannelFromMention(message, args[0]) || guild.channels.cache.get(args[0]);
+
+    if (!client.isAllowed(roleLogChannel) && roleLogChannel != none) {
+      return this.sendErrorMessage(
+        message,
+        this.errorTypes.INVALID_ARG,
+        'Please mention an accessible text or announcement channel or provide a valid text or announcement channel ID'
+      );
     }
 
-    const roleLog = this.getChannelFromMention(message, args[0]) || message.guild.channels.cache.get(args[0]);
-    if (!roleLog || roleLog.type != 'text' || !roleLog.viewable) 
-      return this.sendErrorMessage(message, 0, stripIndent`
-        Please mention an accessible text channel or provide a valid text channel ID
-      `);
-    message.client.db.settings.updateRoleLogId.run(roleLog.id, message.guild.id);
-    message.channel.send(embed.addField('Role Log', `${oldRoleLog} ➔ ${roleLog}`));
+    // Update config
+    await client.db.updateConfig(guild.id, 'roleLogChannelId', roleLogChannel.id || null);
+
+    const embed = new MessageEmbed()
+      .setTitle('Settings: `Logging`')
+      .setThumbnail(guild.iconURL({ dynamic: true }))
+      .setDescription(`The \`role log\` was successfully updated. ${success}`)
+      .addField('Role Log', `${oldRoleLogChannel} ➔ ${roleLogChannel}`)
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
+      .setTimestamp()
+      .setColor(guild.me.displayHexColor);
+    channel.send(embed);
   }
-};
+}
+
+module.exports = SetRoleLog;

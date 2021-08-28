@@ -1,9 +1,20 @@
 const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 const { success } = require('../../utils/emojis.json');
-const { oneLine, stripIndent } = require('common-tags');
+const { oneLine } = require('common-tags');
 
-module.exports = class SetMessageEditLog extends Command {
+/**
+ * Calypso's SetMessageEditLog command
+ * @extends Command
+ */
+class SetMessageEditLog extends Command {
+
+  /**
+   * Creates instance of SetMessageEditLog command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'setmessageeditlog',
@@ -18,29 +29,46 @@ module.exports = class SetMessageEditLog extends Command {
       examples: ['setmessageeditlog #bot-log']
     });
   }
-  run(message, args) {
-    const messageEditLogId = message.client.db.settings.selectMessageEditLogId.pluck().get(message.guild.id);
-    const oldMessageEditLog = message.guild.channels.cache.get(messageEditLogId) || '`None`';
-    const embed = new MessageEmbed()
-      .setTitle('Settings: `Logging`')
-      .setThumbnail(message.guild.iconURL({ dynamic: true }))
-      .setDescription(`The \`message edit log\` was successfully updated. ${success}`)
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
-      .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
 
-    // Clear if no args provided
-    if (args.length === 0) {
-      message.client.db.settings.updateMessageEditLogId.run(null, message.guild.id);
-      return message.channel.send(embed.addField('Message Edit Log', `${oldMessageEditLog} ➔ \`None\``));
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
+  async run(message, args) {
+
+    const { client, guild, channel, member, author } = message;
+    const none = '`None`';
+
+    const messageEditLogChannelId = client.configs.get(guild.id).messageEditLogChannelId;
+    const oldMessageEditLogChannel = guild.channels.cache.get(messageEditLogChannelId) || none;
+
+    let messageEditLogChannel;
+    if (args.length === 0) messageEditLogChannel = none; // Clear if no args provided
+    else messageEditLogChannel = this.getChannelFromMention(message, args[0]) || guild.channels.cache.get(args[0]);
+
+    if (!client.isAllowed(messageEditLogChannel) && messageEditLogChannel != none) {
+      return this.sendErrorMessage(
+        message,
+        this.errorTypes.INVALID_ARG,
+        'Please mention an accessible text or announcement channel or provide a valid text or announcement channel ID'
+      );
     }
 
-    const messageEditLog = this.getChannelFromMention(message, args[0]) || message.guild.channels.cache.get(args[0]);
-    if (!messageEditLog || messageEditLog.type != 'text' || !messageEditLog.viewable) 
-      return this.sendErrorMessage(message, 0, stripIndent`
-        Please mention an accessible text channel or provide a valid text channel ID
-      `);
-    message.client.db.settings.updateMessageEditLogId.run(messageEditLog.id, message.guild.id);
-    message.channel.send(embed.addField('Message Edit Log', `${oldMessageEditLog} ➔ ${messageEditLog}`));
+    // Update config
+    await client.db.updateConfig(guild.id, 'messageEditLogChannelId', messageEditLogChannel.id || null);
+
+    const embed = new MessageEmbed()
+      .setTitle('Settings: `Logging`')
+      .setThumbnail(guild.iconURL({ dynamic: true }))
+      .setDescription(`The \`message edit log\` was successfully updated. ${success}`)
+      .addField('Message Edit Log', `${oldMessageEditLogChannel} ➔ ${messageEditLogChannel}`)
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
+      .setTimestamp()
+      .setColor(guild.me.displayHexColor);
+    channel.send(embed);
   }
-};
+}
+
+module.exports = SetMessageEditLog;

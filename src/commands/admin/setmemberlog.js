@@ -1,9 +1,20 @@
 const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 const { success } = require('../../utils/emojis.json');
-const { oneLine, stripIndent } = require('common-tags');
+const { oneLine } = require('common-tags');
 
-module.exports = class SetMemberLog extends Command {
+/**
+ * Calypso's SetMemberLog command
+ * @extends Command
+ */
+class SetMemberLog extends Command {
+
+  /**
+   * Creates instance of SetMemberLog command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'setmemberlog',
@@ -18,29 +29,46 @@ module.exports = class SetMemberLog extends Command {
       examples: ['setmemberlog #member-log']
     });
   }
-  run(message, args) {
-    const memberLogId = message.client.db.settings.selectMemberLogId.pluck().get(message.guild.id);
-    const oldMemberLog = message.guild.channels.cache.get(memberLogId) || '`None`';
-    const embed = new MessageEmbed()
-      .setTitle('Settings: `Logging`')
-      .setThumbnail(message.guild.iconURL({ dynamic: true }))
-      .setDescription(`The \`member log\` was successfully updated. ${success}`)
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
-      .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
 
-    // Clear if no args provided
-    if (args.length === 0) {
-      message.client.db.settings.updateMemberLogId.run(null, message.guild.id);
-      return message.channel.send(embed.addField('Member Log', `${oldMemberLog} ➔ \`None\``));
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
+  async run(message, args) {
+
+    const { client, guild, channel, member, author } = message;
+    const none = '`None`';
+
+    const memberLogChannelId = client.configs.get(guild.id).memberLogChannelId;
+    const oldMemberLogChannel = guild.channels.cache.get(memberLogChannelId) || none;
+
+    let memberLogChannel;
+    if (args.length === 0) memberLogChannel = none; // Clear if no args provided
+    else memberLogChannel = this.getChannelFromMention(message, args[0]) || guild.channels.cache.get(args[0]);
+
+    if (!client.isAllowed(memberLogChannel) && memberLogChannel != none) {
+      return this.sendErrorMessage(
+        message,
+        this.errorTypes.INVALID_ARG,
+        'Please mention an accessible text or announcement channel or provide a valid text or announcement channel ID'
+      );
     }
 
-    const memberLog = this.getChannelFromMention(message, args[0]) || message.guild.channels.cache.get(args[0]);
-    if (!memberLog || memberLog.type != 'text' || !memberLog.viewable) 
-      return this.sendErrorMessage(message, 0, stripIndent`
-        Please mention an accessible text channel or provide a valid text channel ID
-      `);
-    message.client.db.settings.updateMemberLogId.run(memberLog.id, message.guild.id);
-    message.channel.send(embed.addField('Member Log', `${oldMemberLog} ➔ ${memberLog}`));
+    // Update config
+    await client.db.updateConfig(guild.id, 'memberLogChannelId', memberLogChannel.id || null);
+
+    const embed = new MessageEmbed()
+      .setTitle('Settings: `Logging`')
+      .setThumbnail(guild.iconURL({ dynamic: true }))
+      .setDescription(`The \`member log\` was successfully updated. ${success}`)
+      .addField('Member Log', `${oldMemberLogChannel} ➔ ${memberLogChannel}`)
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
+      .setTimestamp()
+      .setColor(guild.me.displayHexColor);
+    channel.send(embed);
   }
-};
+}
+
+module.exports = SetMemberLog;

@@ -1,9 +1,20 @@
 const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 const { success } = require('../../utils/emojis.json');
-const { oneLine, stripIndent } = require('common-tags');
+const { oneLine } = require('common-tags');
 
-module.exports = class SetMessageDeleteLog extends Command {
+/**
+ * Calypso's SetMessageDeleteLog command
+ * @extends Command
+ */
+class SetMessageDeleteLog extends Command {
+
+  /**
+   * Creates instance of SetMessageDeleteLog command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'setmessagedeletelog',
@@ -18,29 +29,46 @@ module.exports = class SetMessageDeleteLog extends Command {
       examples: ['setmessagedeletelog #bot-log']
     });
   }
-  run(message, args) {
-    const messageDeleteLogId = message.client.db.settings.selectMessageDeleteLogId.pluck().get(message.guild.id);
-    const oldMessageDeleteLog = message.guild.channels.cache.get(messageDeleteLogId) || '`None`';
-    const embed = new MessageEmbed()
-      .setTitle('Settings: `Logging`')
-      .setThumbnail(message.guild.iconURL({ dynamic: true }))
-      .setDescription(`The \`message delete log\` was successfully updated. ${success}`)
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
-      .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
 
-    // Clear if no args provided
-    if (args.length === 0) {
-      message.client.db.settings.updateMessageDeleteLogId.run(null, message.guild.id);
-      return message.channel.send(embed.addField('Message Delete Log', `${oldMessageDeleteLog} ➔ \`None\``));
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
+  async run(message, args) {
+
+    const { client, guild, channel, member, author } = message;
+    const none = '`None`';
+
+    const messageDeleteLogChannelId = client.configs.get(guild.id).messageDeleteLogChannelId;
+    const oldMessageDeleteLogChannel = guild.channels.cache.get(messageDeleteLogChannelId) || none;
+
+    let messageDeleteLogChannel;
+    if (args.length === 0) messageDeleteLogChannel = none; // Clear if no args provided
+    else messageDeleteLogChannel = this.getChannelFromMention(message, args[0]) || guild.channels.cache.get(args[0]);
+
+    if (!client.isAllowed(messageDeleteLogChannel) && messageDeleteLogChannel != none) {
+      return this.sendErrorMessage(
+        message,
+        this.errorTypes.INVALID_ARG,
+        'Please mention an accessible text or announcement channel or provide a valid text or announcement channel ID'
+      );
     }
 
-    const messageDeleteLog = this.getChannelFromMention(message, args[0]) || message.guild.channels.cache.get(args[0]);
-    if (!messageDeleteLog || messageDeleteLog.type != 'text' || !messageDeleteLog.viewable) 
-      return this.sendErrorMessage(message, 0, stripIndent`
-        Please mention an accessible text channel or provide a valid text channel ID
-      `);
-    message.client.db.settings.updateMessageDeleteLogId.run(messageDeleteLog.id, message.guild.id);
-    message.channel.send(embed.addField('Message Delete Log', `${oldMessageDeleteLog} ➔ ${messageDeleteLog}`));
+    // Update config
+    await client.db.updateConfig(guild.id, 'messageDeleteLogChannelId', messageDeleteLogChannel.id || null);
+
+    const embed = new MessageEmbed()
+      .setTitle('Settings: `Logging`')
+      .setThumbnail(guild.iconURL({ dynamic: true }))
+      .setDescription(`The \`message delete log\` was successfully updated. ${success}`)
+      .addField('Message Delete Log', `${oldMessageDeleteLogChannel} ➔ ${messageDeleteLogChannel}`)
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
+      .setTimestamp()
+      .setColor(guild.me.displayHexColor);
+    channel.send(embed);
   }
-};
+}
+
+module.exports = SetMessageDeleteLog;

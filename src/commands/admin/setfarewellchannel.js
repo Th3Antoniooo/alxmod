@@ -1,9 +1,20 @@
 const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 const { success } = require('../../utils/emojis.json');
-const { oneLine, stripIndent } = require('common-tags');
+const { oneLine } = require('common-tags');
 
-module.exports = class SetFarewellChannel extends Command {
+/**
+ * Calypso's SetFarewellChannel command
+ * @extends Command
+ */
+class SetFarewellChannel extends Command {
+
+  /**
+   * Creates instance of SetFarewellChannel command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'setfarewellchannel',
@@ -19,54 +30,62 @@ module.exports = class SetFarewellChannel extends Command {
       examples: ['setfarewellchannel #general']
     });
   }
-  run(message, args) {
-    let { farewell_channel_id: farewellChannelId, farewell_message: farewellMessage } = 
-      message.client.db.settings.selectFarewells.get(message.guild.id);
-    const oldFarewellChannel = message.guild.channels.cache.get(farewellChannelId) || '`None`';
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
+  async run(message, args) {
+
+    const { client, guild, channel, member, author } = message;
+    const { getStatus, replaceKeywords } = client.utils;
+    const { INVALID_ARG } = this.errorTypes;
+    const none = '`None`';
+
+    const farewellChannelId = client.configs.get(guild.id).farewellChannelId;
+    const oldFarewellChannel = guild.channels.cache.get(farewellChannelId) || none;
+    let farewellMessage = client.configs.get(guild.id).farewellMessage;
 
     // Get status
-    const oldStatus = message.client.utils.getStatus(farewellChannelId, farewellMessage);
+    const oldStatus = getStatus(farewellChannelId, farewellMessage);
 
     // Trim message
     if (farewellMessage && farewellMessage.length > 1024) farewellMessage = farewellMessage.slice(0, 1021) + '...';
-    
-    const embed = new MessageEmbed()
-      .setTitle('Settings: `Farewells`')
-      .setDescription(`The \`farewell channel\` was successfully updated. ${success}`)
-      .addField('Message', message.client.utils.replaceKeywords(farewellMessage) || '`None`')
-      .setThumbnail(message.guild.iconURL({ dynamic: true }))
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
-      .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
 
     // Clear if no args provided
-    if (args.length === 0) {
-      message.client.db.settings.updateFarewellChannelId.run(null, message.guild.id);
+    let farewellChannel;
+    if (args.length === 0) farewellChannel = none;
+    else farewellChannel = this.getChannelFromMention(message, args[0]) || guild.channels.cache.get(args[0]);
 
-      // Update status
-      const status = 'disabled';
-      const statusUpdate = (oldStatus != status) ? `\`${oldStatus}\` ➔ \`${status}\`` : `\`${oldStatus}\``; 
-      
-      return message.channel.send(embed
-        .spliceFields(0, 0, { name: 'Channel', value: `${oldFarewellChannel} ➔ \`None\``, inline: true })
-        .spliceFields(1, 0, { name: 'Status', value: statusUpdate, inline: true })
+    if (!client.isAllowed(farewellChannel) && farewellChannel != none) {
+      return this.sendErrorMessage(
+        message,
+        INVALID_ARG,
+        'Please mention an accessible text or announcement channel or provide a valid text or announcement channel ID'
       );
     }
 
-    const farewellChannel = this.getChannelFromMention(message, args[0]) || message.guild.channels.cache.get(args[0]);
-    if (!farewellChannel || (farewellChannel.type != 'text' && farewellChannel.type != 'news') || !farewellChannel.viewable) 
-      return this.sendErrorMessage(message, 0, stripIndent`
-        Please mention an accessible text or announcement channel or provide a valid text or announcement channel ID
-      `);
-
     // Update status
-    const status =  message.client.utils.getStatus(farewellChannel, farewellMessage);
-    const statusUpdate = (oldStatus != status) ? `\`${oldStatus}\` ➔ \`${status}\`` : `\`${oldStatus}\``;
+    const status = getStatus(farewellChannel.id, farewellMessage);
+    const statusUpdate = (oldStatus != status) ? `${oldStatus} ➔ ${status}` : oldStatus;
 
-    message.client.db.settings.updateFarewellChannelId.run(farewellChannel.id, message.guild.id);
-    message.channel.send(embed
-      .spliceFields(0, 0, { name: 'Channel', value: `${oldFarewellChannel} ➔ ${farewellChannel}`, inline: true})
-      .spliceFields(1, 0, { name: 'Status', value: statusUpdate, inline: true})
-    );
+    // Update config
+    await client.db.updateConfig(guild.id, 'farewellChannelId', farewellChannel.id || null);
+
+    const embed = new MessageEmbed()
+      .setTitle('Settings: `Farewells`')
+      .setDescription(`The \`farewell channel\` was successfully updated. ${success}`)
+      .addField('Channel', `${oldFarewellChannel} ➔ ${farewellChannel}`, true)
+      .addField('Status', statusUpdate, true)
+      .addField('Message', replaceKeywords(farewellMessage) || none)
+      .setThumbnail(guild.iconURL({ dynamic: true }))
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
+      .setTimestamp()
+      .setColor(guild.me.displayHexColor);
+    channel.send(embed);
   }
-};
+}
+
+module.exports = SetFarewellChannel;

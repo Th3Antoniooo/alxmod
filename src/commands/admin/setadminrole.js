@@ -2,7 +2,18 @@ const Command = require('../Command.js');
 const { MessageEmbed } = require('discord.js');
 const { success } = require('../../utils/emojis.json');
 
-module.exports = class SetAdminRole extends Command {
+/**
+ * Calypso's SetAdminRole command
+ * @extends Command
+ */
+class SetAdminRole extends Command {
+
+  /**
+   * Creates instance of SetAdminRole command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'setadminrole',
@@ -14,28 +25,38 @@ module.exports = class SetAdminRole extends Command {
       examples: ['setadminrole @Admin']
     });
   }
-  run(message, args) {
-    const adminRoleId = message.client.db.settings.selectAdminRoleId.pluck().get(message.guild.id);
-    const oldAdminRole = message.guild.roles.cache.find(r => r.id === adminRoleId) || '`None`';
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
+  async run(message, args) {
+
+    const { client, guild, channel, member, author } = message;
+    const none = '`None`';
+
+    const adminRoleId = client.configs.get(guild.id).adminRoleId;
+    const oldAdminRole = guild.roles.cache.find(r => r.id === adminRoleId) || none;
+
+    let adminRole;
+    if (args.length === 0) adminRole = none; // Clear if no args provided
+    else adminRole = this.getRoleFromMention(message, args[0]) || message.guild.roles.cache.get(args[0]);
+
+    // Update config
+    await client.db.updateConfig(guild.id, 'adminRoleId', adminRole.id || null);
 
     const embed = new MessageEmbed()
       .setTitle('Settings: `System`')
-      .setThumbnail(message.guild.iconURL({ dynamic: true }))
+      .setThumbnail(guild.iconURL({ dynamic: true }))
       .setDescription(`The \`admin role\` was successfully updated. ${success}`)
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+      .addField('Admin Role', `${oldAdminRole} ➔ ${adminRole}`)
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
-
-    // Clear if no args provided
-    if (args.length === 0) {
-      message.client.db.settings.updateAdminRoleId.run(null, message.guild.id);
-      return message.channel.send(embed.addField('Admin Role', `${oldAdminRole} ➔ \`None\``));
-    }
-
-    // Update role
-    const adminRole = this.getRoleFromMention(message, args[0]) || message.guild.roles.cache.get(args[0]);
-    if (!adminRole) return this.sendErrorMessage(message, 0, 'Please mention a role or provide a valid role ID');
-    message.client.db.settings.updateAdminRoleId.run(adminRole.id, message.guild.id);
-    message.channel.send(embed.addField('Admin Role', `${oldAdminRole} ➔ ${adminRole}`));
+      .setColor(guild.me.displayHexColor);
+    channel.send(embed);
   }
-};
+}
+
+module.exports = SetAdminRole;

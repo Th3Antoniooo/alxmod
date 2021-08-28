@@ -3,7 +3,18 @@ const { MessageEmbed } = require('discord.js');
 const { success } = require('../../utils/emojis.json');
 const { oneLine } = require('common-tags');
 
-module.exports = class SetAutoRole extends Command {
+/**
+ * Calypso's SetAutoRole command
+ * @extends Command
+ */
+class SetAutoRole extends Command {
+
+  /**
+   * Creates instance of SetAutoRole command
+   * @constructor
+   * @param {Client} client - Calypso's client
+   * @param {Object} options - All command options
+   */
   constructor(client) {
     super(client, {
       name: 'setautorole',
@@ -18,28 +29,38 @@ module.exports = class SetAutoRole extends Command {
       examples: ['setautorole @Member']
     });
   }
-  run(message, args) {
-    const autoRoleId = message.client.db.settings.selectAutoRoleId.pluck().get(message.guild.id);
-    const oldAutoRole = message.guild.roles.cache.find(r => r.id === autoRoleId) || '`None`';
+
+  /**
+	 * Runs the command
+	 * @param {Message} message - The message that ran the command
+	 * @param {Array<string>} args - The arguments for the command
+	 * @returns {undefined}
+	 */
+  async run(message, args) {
+
+    const { client, guild, channel, member, author } = message;
+    const none = '`None`';
+
+    const autoRoleId = client.configs.get(guild.id).autoRoleId;
+    const oldAutoRole = guild.roles.cache.find(r => r.id === autoRoleId) || none;
+
+    let autoRole;
+    if (args.length === 0) autoRole = none; // Clear if no args provided
+    else autoRole = this.getRoleFromMention(message, args[0]) || message.guild.roles.cache.get(args[0]);
+
+    // Update config
+    await client.db.updateConfig(guild.id, 'autoRoleId', autoRole.id || null);
 
     const embed = new MessageEmbed()
       .setTitle('Settings: `System`')
-      .setThumbnail(message.guild.iconURL({ dynamic: true }))
+      .setThumbnail(guild.iconURL({ dynamic: true }))
       .setDescription(`The \`auto role\` was successfully updated. ${success}`)
-      .setFooter(message.member.displayName, message.author.displayAvatarURL({ dynamic: true }))
+      .addField('Auto Role', `${oldAutoRole} ➔ ${autoRole}`)
+      .setFooter(member.displayName, author.displayAvatarURL({ dynamic: true }))
       .setTimestamp()
-      .setColor(message.guild.me.displayHexColor);
-
-    // Clear if no args provided
-    if (args.length === 0) {
-      message.client.db.settings.updateAutoRoleId.run(null, message.guild.id);
-      return message.channel.send(embed.addField('Auto Role', `${oldAutoRole} ➔ \`None\``));
-    }
-
-    // Update role
-    const autoRole = this.getRoleFromMention(message, args[0]) || message.guild.roles.cache.get(args[0]);
-    if (!autoRole) return this.sendErrorMessage(message, 0, 'Please mention a role or provide a valid role ID');
-    message.client.db.settings.updateAutoRoleId.run(autoRole.id, message.guild.id);
-    message.channel.send(embed.addField('Auto Role', `${oldAutoRole} ➔ ${autoRole}`));
+      .setColor(guild.me.displayHexColor);
+    channel.send(embed);
   }
-};
+}
+
+module.exports = SetAutoRole;
