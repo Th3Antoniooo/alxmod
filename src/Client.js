@@ -1,5 +1,6 @@
 const Discord = require('discord.js');
 const Database = require('./db/Database.js');
+const BotLogger = require('./BotLogger.js');
 const ConfigCache = require('./ConfigCache.js');
 const { readdirSync, readFileSync } = require('fs');
 const { join, resolve } = require('path');
@@ -17,6 +18,7 @@ class Client extends Discord.Client {
   /**
    * @property {Logger} logger - The logger for the client
    * @property {Database} db - A wrapper around the Sequelize ORM
+   * @property {BotLogger} botLogger - Handles all server bot log messages
    * @property {ConfigCache<string, GuildConfig>} configs - A cache where all guild configs are kept
    * @property {Object} types - All of the command categories
    * @property {Collection<string, Command>} commands - A Collection of commands, mapped by their name
@@ -50,9 +52,15 @@ class Client extends Discord.Client {
 
     /**
      * The client's database
-     * @type {Object}
+     * @type {Database}
      */
     this.db = new Database(this, config.dbConfig[config.env]);
+
+    /**
+     * The client's bot logger
+     * @type {BotLogger}
+     */
+    this.botLogger = new BotLogger(this);
 
     /**
      * Cache of all guild configurations

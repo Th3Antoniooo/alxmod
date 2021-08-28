@@ -9,4 +9,6 @@ module.exports = async (client, member) => {
   await AddMember.run({ member });
 
   await SendWelcomeMessage.run({ member });
+
+  await client.botLogger.sendMemberAddLog(member);
 };

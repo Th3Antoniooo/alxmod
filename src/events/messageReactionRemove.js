@@ -1,3 +1,6 @@
+/**
+ * Message Reaction Remove Event
+ */
 module.exports = async (client, messageReaction, user) => {
 
   if (client.user === user) return;

@@ -10,4 +10,6 @@ module.exports = async (client, member) => {
   await RemoveMember.run({ userId: member.id, guildId: member.guild.id });
 
   await SendFarewellMessage.run({ member });
+
+  await client.botLogger.sendMemberRemoveLog(member);
 };

@@ -1,6 +1,9 @@
 const { verify } = require('../utils/emojis.json');
 const { stripIndent } = require('common-tags');
 
+/**
+ * Message Reaction Add Event
+ */
 module.exports = async (client, messageReaction, user) => {
 
   if (client.user === user) return;
