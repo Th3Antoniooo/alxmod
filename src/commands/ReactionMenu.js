@@ -110,7 +110,6 @@ class ReactionMenu {
     /**
      * The collector timeout
      * @type {number}
-     * @private
      */
     this.timeout = options.timeout || 120000;
 

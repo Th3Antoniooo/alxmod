@@ -48,10 +48,11 @@ class Warns extends Command {
     }
 
     // Get model
-    const { Warn } = client.db.models;
+    const { GuildMember } = client.db.models;
+    const guildMember = await GuildMember.findOne({ where: { userId: member.id, guildId: guild.id }});
 
     // Get warns
-    const warns = await Warn.findAll({ where: { userId: member.id, guildId: guild.id }});
+    const warns = await guildMember.getWarns();
     const count = warns.length;
 
     const embed = new MessageEmbed()

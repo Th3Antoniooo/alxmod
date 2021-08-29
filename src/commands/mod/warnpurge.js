@@ -72,19 +72,18 @@ class WarnPurge extends Command {
     if (reason.length > 1024) reason = reason.slice(0, 1021) + '...';
 
     // Get model
-    const { Warn } = client.db.models;
+    const { GuildMember } = client.db.models;
+    const guildMember = await GuildMember.findOne({ where: { userId: member.id, guildId: guild.id }});
 
     // Create warning
-    await Warn.create({
-      userId: member.id,
-      guildId: guild.id,
+    await guildMember.createWarn({
       mod: message.member.id,
       date:  moment().format('MMM DD YYYY'),
       reason: reason
     });
 
     // Get warns
-    const warns = await Warn.findAll({ where: { userId: member.id, guildId: guild.id }});
+    const warns = await guildMember.getWarns();
 
     const autoKick = client.configs.get(guild.id).autoKick; // Get warn # for auto kick
 

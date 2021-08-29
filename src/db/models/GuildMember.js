@@ -18,6 +18,21 @@ module.exports = (sequelize) => {
       allowNull: false
     },
     displayName: DataTypes.STRING,
+    points: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+      allowNull: false
+    },
+    totalPoints: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+      allowNull: false
+    },
+    totalCrowns: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+      allowNull: false
+    },
     joinedAt: {
       type: DataTypes.DATE,
       allowNull: false

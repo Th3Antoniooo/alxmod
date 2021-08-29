@@ -63,10 +63,17 @@ class ClearWarns extends Command {
     if (reason.length > 1024) reason = reason.slice(0, 1021) + '...';
 
     // Get model
-    const { Warn } = client.db.models;
+    const { GuildMember, Warn } = client.db.models;
+    const guildMemberId = await GuildMember.findOne({
+      attributes: [['id', 'guildMemberId']], // Renames output
+      where: { userId: member.id, guildId: guild.id },
+      raw: true
+    });
 
     // Clear warns
-    await Warn.destroy({ where: { userId: member.id, guildId: guild.id }}); // Remove old channels
+    // Would have just used guildMember.removeWarns() here but apparently that's broken too:
+    // https://github.com/sequelize/sequelize/issues/4708
+    await Warn.destroy({ where: guildMemberId });
 
     const embed = new MessageEmbed()
       .setTitle('Clear Warns')

@@ -4,16 +4,12 @@ class Warn extends Model {}
 
 module.exports = (sequelize) => {
   Warn.init({
-    id: { // Auto increment PK because Sequelize doesn't support referencing composite keys as FKs
+    id: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true
     },
-    userId: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    guildId: {
+    guildMemberId: {
       type: DataTypes.STRING,
       allowNull: false
     },

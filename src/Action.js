@@ -29,14 +29,14 @@ class Action {
     /**
      * Client that owns this action
      * @type {Client}
-     * @private
+     * @protected
      */
     this._client = client;
 
     /**
      * The data models
      * @type {Object}
-     * @private
+     * @protected
      */
     this._models = client.db.models;
   }

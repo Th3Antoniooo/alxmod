@@ -332,7 +332,7 @@ class Command {
     const modLogChannelId = client.configs.get(guild.id).modLogChannelId;
     const modLogChannel = guild.channels.cache.get(modLogChannelId); // Get mod log
 
-    if (!this.isAllowed(modLogChannel)) {
+    if (!client.isAllowed(modLogChannel)) {
       const caseNumber = await getCaseNumber(guild, modLogChannel);
       const embed = new MessageEmbed()
         .setTitle(`Action: \`${capitalize(this.name)}\``)
