@@ -17,7 +17,7 @@ class ReactionMenu {
    * @property {number} max - The max size of the array
    * @property {Object} reactions - Reaction emojis mapped to functions
    * @property {Array<string>} _emojis - The ID of each emoji used
-   * @property {number} _timeout - How long the reaction menu will exist, in milliseconds
+   * @property {number} timeout - How long the reaction menu will exist, in milliseconds
    * @property {Message} message - The message containing the reaction menu
    */
 
@@ -112,7 +112,7 @@ class ReactionMenu {
      * @type {number}
      * @private
      */
-    this._timeout = options.timeout || 120000;
+    this.timeout = options.timeout || 120000;
 
     const first = new MessageEmbed(this._json);
     const description = (this.arr) ? this.arr.slice(this._current, this.interval) : null;
@@ -153,11 +153,11 @@ class ReactionMenu {
   _createCollector() {
 
     // Create collector
-    let { _memberId, _reactions, _emojis, _timeout, message } = this;
+    let { _memberId, _reactions, _emojis, timeout, message } = this;
     const collector = message.createReactionCollector((reaction, user) => {
       return (_emojis.includes(reaction.emoji.name) || _emojis.includes(reaction.emoji.id)) &&
         user.id == _memberId;
-    }, { time: _timeout });
+    }, { time: timeout });
 
     // On collect
     collector.on('collect', async reaction => {

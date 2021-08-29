@@ -22,17 +22,11 @@ module.exports = (sequelize) => {
       allowNull: false
     },
     date: {
-      type: DataTypes.DATE,
+      type: DataTypes.STRING,
       allowNull: false
     },
     reason: DataTypes.STRING,
   }, {
-    indexes: [
-      {
-        unique: true,
-        fields: ['user_id', 'guild_id']
-      }
-    ],
     tableName: 'warns',
     underscored: true,
     sequelize

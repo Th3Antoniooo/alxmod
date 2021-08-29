@@ -6,7 +6,7 @@ class UpdateGuildName extends Action {
   }
   async run({ oldGuild, newGuild }) {
     // Update guild name
-    const { Guild } = this._client.db.models;
+    const { Guild } = this._models;
     const guild = await Guild.findOne({ where: { guildId: oldGuild.id }});
     guild.name = newGuild.name;
     await guild.save();
